@@ -1,0 +1,70 @@
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { Home, Radio, BrainCircuit, Headset, MoreHorizontal } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+export function ResidentBottomNav() {
+    const pathname = usePathname()
+
+    const links = [
+        {
+            href: "/dashboard",
+            label: "",
+            icon: Home,
+        },
+        {
+            href: "/community",
+            label: "",
+            icon: Radio, // Placeholder for Signal/IoT
+        },
+        {
+            href: "/ai",
+            label: "",
+            icon: BrainCircuit, // Placeholder for AI
+            primary: false,
+        },
+        {
+            href: "/support",
+            label: "",
+            icon: Headset, // Placeholder for Support
+        },
+        {
+            href: "/menu",
+            label: "",
+            icon: MoreHorizontal,
+        },
+    ]
+
+    return (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white shadow-[0_-4px_10px_rgba(0,0,0,0.05)] pb-safe rounded-t-[2rem] lg:hidden">
+            <div className="flex items-center justify-between h-20 max-w-md mx-auto px-6">
+                {links.map((link) => {
+                    const Icon = link.icon
+                    const isActive = pathname === link.href
+
+                    if (isActive) {
+                        return (
+                            <div key={link.href} className="flex items-center justify-center">
+                                <div className="w-12 h-12 bg-[#1a237e] rounded-full flex items-center justify-center shadow-lg transition-all transform scale-110">
+                                    <Icon className="w-6 h-6 text-white" />
+                                </div>
+                            </div>
+                        )
+                    }
+
+                    return (
+                        <Link
+                            key={link.href}
+                            href={link.href}
+                            className="flex flex-col items-center justify-center space-y-1 text-gray-400 hover:text-[#1a237e]"
+                        >
+                            <Icon className="w-6 h-6" />
+                        </Link>
+                    )
+                })}
+            </div>
+        </div>
+    )
+}
