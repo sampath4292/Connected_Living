@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Radio, BrainCircuit, Headset, MoreHorizontal, LogOut } from "lucide-react"
+import { Home, Radio, BrainCircuit, Headset, MoreHorizontal, LogOut, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export function ResidentSidebar() {
@@ -15,8 +15,8 @@ export function ResidentSidebar() {
             icon: Home,
         },
         {
-            href: "/community",
-            label: "Hub",
+            href: "/hub",
+            label: "Smart Hub",
             icon: Radio,
         },
         {
@@ -25,12 +25,12 @@ export function ResidentSidebar() {
             icon: BrainCircuit,
         },
         {
-            href: "/support",
-            label: "Help & Support",
-            icon: Headset,
+            href: "/community",
+            label: "Community",
+            icon: Users,
         },
         {
-            href: "/menu",
+            href: "/more",
             label: "More",
             icon: MoreHorizontal,
         },
@@ -52,14 +52,22 @@ export function ResidentSidebar() {
                             key={link.href}
                             href={link.href}
                             className={cn(
-                                "flex items-center gap-3 px-4 py-3 rounded-xl transition-colors",
+                                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300",
                                 isActive
                                     ? "bg-[#1a237e]/5 text-[#1a237e] font-semibold"
-                                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900",
+                                link.href === "/ai" && !isActive && "text-violet-600 hover:bg-violet-50 hover:text-violet-700 font-medium"
                             )}
                         >
-                            <Icon className={cn("w-5 h-5", isActive ? "text-[#1a237e]" : "text-gray-400")} />
+                            <Icon className={cn(
+                                "w-5 h-5",
+                                isActive ? "text-[#1a237e]" : "text-gray-400",
+                                link.href === "/ai" && "text-violet-600 animate-pulse"
+                            )} />
                             <span>{link.label}</span>
+                            {link.href === "/ai" && (
+                                <span className="ml-auto bg-violet-100 text-violet-600 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full">New</span>
+                            )}
                         </Link>
                     )
                 })}

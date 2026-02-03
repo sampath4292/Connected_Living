@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Radio, BrainCircuit, Headset, MoreHorizontal } from "lucide-react"
+import { Home, Radio, BrainCircuit, Headset, MoreHorizontal, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export function ResidentBottomNav() {
@@ -15,9 +15,9 @@ export function ResidentBottomNav() {
             icon: Home,
         },
         {
-            href: "/community",
-            label: "",
-            icon: Radio, // Placeholder for Signal/IoT
+            href: "/hub",
+            label: "Hub",
+            icon: Radio,
         },
         {
             href: "/ai",
@@ -26,12 +26,12 @@ export function ResidentBottomNav() {
             primary: false,
         },
         {
-            href: "/support",
-            label: "",
-            icon: Headset, // Placeholder for Support
+            href: "/community",
+            label: "Community",
+            icon: Users,
         },
         {
-            href: "/menu",
+            href: "/more",
             label: "",
             icon: MoreHorizontal,
         },
@@ -58,13 +58,22 @@ export function ResidentBottomNav() {
                         <Link
                             key={link.href}
                             href={link.href}
-                            className="flex flex-col items-center justify-center space-y-1 text-gray-400 hover:text-[#1a237e]"
+                            className={cn(
+                                "flex flex-col items-center justify-center space-y-1 transition-all",
+                                link.href === "/ai" ? "-mt-8" : "text-gray-400 hover:text-[#1a237e]"
+                            )}
                         >
-                            <Icon className="w-6 h-6" />
+                            {link.href === "/ai" ? (
+                                <div className="h-16 w-16 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg border-4 border-gray-50 text-white transform hover:scale-105 transition-transform">
+                                    <Icon className="w-8 h-8" />
+                                </div>
+                            ) : (
+                                <Icon className="w-6 h-6" />
+                            )}
                         </Link>
                     )
                 })}
             </div>
-        </div>
+        </div >
     )
 }

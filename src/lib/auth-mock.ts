@@ -48,7 +48,7 @@ export const MOCK_USERS: User[] = [
         username: "admin",
         role: "admin",
         password: "Admin@123",
-        redirectPath: "/admin/dashboard",
+        redirectPath: "/admin", // Updated from /admin/dashboard
     },
 ]
 
