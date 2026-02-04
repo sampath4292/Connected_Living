@@ -89,7 +89,7 @@ export default function MorePage() {
                                     </div>
                                 </button>
 
-                                <button className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors">
+                                <Link href="/family" className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors">
                                     <div className="flex items-center gap-4">
                                         <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
                                             <Users size={20} />
@@ -100,9 +100,9 @@ export default function MorePage() {
                                         </div>
                                     </div>
                                     <ChevronRight size={20} className="text-gray-400" />
-                                </button>
+                                </Link>
 
-                                <button className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors">
+                                <Link href="/vehicles" className="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition-colors">
                                     <div className="flex items-center gap-4">
                                         <div className="h-10 w-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-600">
                                             <Car size={20} />
@@ -113,7 +113,7 @@ export default function MorePage() {
                                         </div>
                                     </div>
                                     <ChevronRight size={20} className="text-gray-400" />
-                                </button>
+                                </Link>
                             </div>
                         </section>
 

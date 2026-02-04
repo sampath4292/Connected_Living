@@ -1,7 +1,7 @@
 import {
     CreditCard, UserPlus, AlertTriangle, Calendar, MessageSquare, Tag, Shield, Users,
     Truck, Car, Waves, Dumbbell, PartyPopper, Zap, Wrench, Package, Hammer, Droplets, Receipt, Flame, AlertCircle, PlugZap,
-    Megaphone, ClipboardList, Boxes, UserCheck
+    Megaphone, ClipboardList, Boxes, UserCheck, Radio, Home
 } from "lucide-react"
 
 // --- Types ---
@@ -121,6 +121,49 @@ export interface NoticeItem {
     audience: "All" | "Residents Only" | "Staff Only"
 }
 
+export interface FamilyMemberItem {
+    id: string
+    name: string
+    relation: "Spouse" | "Child" | "Parent" | "Sibling" | "Other"
+    age: string
+    avatar?: string
+    phone?: string
+    accessLevel?: "Full" | "Limited" | "None"
+}
+
+export interface VehicleItem {
+    id: string
+    userId: string
+    type: "Car" | "Bike"
+    category: "EV" | "ICE" // ICE = Internal Combustion Engine
+    registrationNumber: string
+    model?: string
+    color?: string
+}
+
+export interface CommunityMessageItem {
+    id: number
+    sender: string
+    role: "security" | "resident" | "admin" | "me"
+    text: string
+    time: string
+    avatar: string
+    color: string
+}
+
+export interface CommunityEventItem {
+    id: number
+    title: string
+    time: string
+    location: string
+    participants: number
+    imageGradient: string
+    description?: string
+    organizer?: string
+    rsvpStatus?: "going" | "not_going" | "pending"
+    price?: string
+}
+
 
 // --- Mock Data (Central Database) ---
 
@@ -207,9 +250,9 @@ const MOCK_NOTIFICATIONS: NotificationItem[] = [
     { id: 1, title: "Maintenance Due", description: "Your monthly maintenance is due on Feb 5", time: "2h ago", type: "payment", read: false },
     { id: 2, title: "Community Event", description: "Republic Day celebration at clubhouse", time: "5h ago", type: "event", read: false },
     { id: 3, title: "Water Supply Notice", description: "Water supply will be interrupted tomorrow from 10 AM to 2 PM for tank cleaning", time: "1d ago", type: "notice", read: false },
-    { id: 4, title: "Special Offer", description: "Get 20% off on annual maintenance payment", time: "2d ago", type: "offer", read: true },
-    { id: 5, title: "Security Alert", description: "New visitor management system activated", time: "3d ago", type: "security", read: true },
-    { id: 6, title: "AGM Reminder", description: "Annual General Meeting scheduled for Feb 15", time: "5d ago", type: "meeting", read: true },
+    { id: 4, title: "New Message from Ramesh", description: "Notice: Water tanker has arrived at Gate 1.", time: "10:30 AM", type: "notice", read: false }, // Synced with Chat
+    { id: 5, title: "Event Update", description: "Morning Yoga Workshop is starting in 30 mins!", time: "Sun, 6:30 AM", type: "event", read: true }, // Synced with Event
+    { id: 6, title: "Security Alert", description: "New visitor management system activated", time: "3d ago", type: "security", read: true },
 ]
 
 const MOCK_VISITORS: VisitorItem[] = [
@@ -230,15 +273,111 @@ const MOCK_NOTICES: NoticeItem[] = [
     { id: "N-001", title: "Lift Maintenance", content: "Lift A will be down for servicing on Sunday.", date: "Feb 3, 2024", type: "General", audience: "Residents Only" }
 ]
 
-// --- API Methods ---
+const MOCK_FAMILY_MEMBERS: FamilyMemberItem[] = [
+    { id: "FM-001", name: "Priya Singh", relation: "Spouse", age: "32", phone: "9876543211", accessLevel: "Full" },
+    { id: "FM-002", name: "Aarav Singh", relation: "Child", age: "8", accessLevel: "None" }
+]
 
+const MOCK_VEHICLES: VehicleItem[] = [
+    { id: "V-001", userId: "U-001", type: "Car", category: "EV", registrationNumber: "KA 01 MG 1234", model: "Tata Nexon EV", color: "Blue" },
+    { id: "V-002", userId: "U-001", type: "Bike", category: "ICE", registrationNumber: "KA 05 JJ 9988", model: "Royal Enfield", color: "Black" }
+]
+
+const MOCK_COMMUNITY_MESSAGES: CommunityMessageItem[] = [
+    { id: 1, sender: "Ramesh (Security)", role: "security", text: "Notice: Water tanker has arrived at Gate 1.", time: "10:30 AM", avatar: "R", color: "bg-green-100 text-green-700" },
+    { id: 2, sender: "Priya (B-402)", role: "resident", text: "Great, thanks Ramesh! Is the lift working now?", time: "10:32 AM", avatar: "P", color: "bg-pink-100 text-pink-700" },
+    { id: 3, sender: "Rahul (A-101)", role: "resident", text: "Yes, I just used it. It's working fine.", time: "10:35 AM", avatar: "R", color: "bg-blue-100 text-blue-700" },
+    { id: 4, sender: "Admin", role: "admin", text: "Please remember to separate dry and wet waste before disposal.", time: "11:00 AM", avatar: "A", color: "bg-gray-800 text-white" },
+    { id: 5, sender: "Simran (C-505)", role: "resident", text: "Does anyone have a contact for a good carpenter?", time: "11:15 AM", avatar: "S", color: "bg-orange-100 text-orange-700" },
+]
+
+const MOCK_COMMUNITY_EVENTS: CommunityEventItem[] = [
+    {
+        id: 1,
+        title: "Morning Yoga Workshop",
+        time: "Sun, 7:00 AM",
+        location: "Yoga Deck",
+        participants: 12,
+        imageGradient: "from-orange-400 to-pink-500",
+        description: "Start your Sunday with a refreshing Hatha Yoga session led by certified instructor Meera. Suitable for all levels. Please bring your own mat.",
+        organizer: "Health Club",
+        price: "Free",
+        rsvpStatus: "pending"
+    },
+    {
+        id: 2,
+        title: "Kids Art Competition",
+        time: "Sat, 4:00 PM",
+        location: "Clubhouse",
+        participants: 28,
+        imageGradient: "from-blue-400 to-indigo-500",
+        description: "Annual art competition for kids aged 5-12. Theme: 'Future Cities'. Colors and paper will be provided. Exciting prizes for winners!",
+        organizer: "Cultural Committee",
+        price: "₹100",
+        rsvpStatus: "pending"
+    },
+]
+
+
+// --- API Methods ---
 export const api = {
+    // USER
     getUserProfile: async (): Promise<UserItem | undefined> => new Promise(resolve => setTimeout(() => resolve(MOCK_USERS[0]), 500)),
     updateUserProfile: async (data: Partial<UserItem>): Promise<UserItem> => {
         // Mock update: merge data into the first mock user
         Object.assign(MOCK_USERS[0], data)
         return new Promise(resolve => setTimeout(() => resolve(MOCK_USERS[0]), 500))
     },
+
+    // FAMILY Methods
+    getFamilyMembers: async (): Promise<FamilyMemberItem[]> => new Promise(resolve => setTimeout(() => resolve([...MOCK_FAMILY_MEMBERS]), 500)),
+    addFamilyMember: async (member: Omit<FamilyMemberItem, "id">): Promise<FamilyMemberItem> => {
+        const newMember = { ...member, id: `FM-${Date.now()}` }
+        MOCK_FAMILY_MEMBERS.push(newMember)
+        return new Promise(resolve => setTimeout(() => resolve(newMember), 500))
+    },
+    updateFamilyMember: async (id: string, data: Partial<FamilyMemberItem>): Promise<FamilyMemberItem | undefined> => {
+        const index = MOCK_FAMILY_MEMBERS.findIndex(m => m.id === id)
+        if (index !== -1) {
+            Object.assign(MOCK_FAMILY_MEMBERS[index], data)
+            return new Promise(resolve => setTimeout(() => resolve(MOCK_FAMILY_MEMBERS[index]), 500))
+        }
+        return undefined
+    },
+    deleteFamilyMember: async (id: string): Promise<boolean> => {
+        const index = MOCK_FAMILY_MEMBERS.findIndex(m => m.id === id)
+        if (index !== -1) {
+            MOCK_FAMILY_MEMBERS.splice(index, 1)
+            return new Promise(resolve => setTimeout(() => resolve(true), 500))
+        }
+        return false
+    },
+
+    // VEHICLE Methods
+    getVehicles: async (): Promise<VehicleItem[]> => new Promise(resolve => setTimeout(() => resolve([...MOCK_VEHICLES]), 500)),
+    addVehicle: async (vehicle: Omit<VehicleItem, "id" | "userId">): Promise<VehicleItem> => {
+        const newVehicle = { ...vehicle, id: `V-${Date.now()}`, userId: "U-001" }
+        MOCK_VEHICLES.push(newVehicle)
+        return new Promise(resolve => setTimeout(() => resolve(newVehicle), 500))
+    },
+    updateVehicle: async (id: string, data: Partial<VehicleItem>): Promise<VehicleItem | undefined> => {
+        const index = MOCK_VEHICLES.findIndex(v => v.id === id)
+        if (index !== -1) {
+            Object.assign(MOCK_VEHICLES[index], data)
+            return new Promise(resolve => setTimeout(() => resolve(MOCK_VEHICLES[index]), 500))
+        }
+        return undefined
+    },
+    deleteVehicle: async (id: string): Promise<boolean> => {
+        const index = MOCK_VEHICLES.findIndex(v => v.id === id)
+        if (index !== -1) {
+            MOCK_VEHICLES.splice(index, 1)
+            return new Promise(resolve => setTimeout(() => resolve(true), 500))
+        }
+        return false
+    },
+
+    // AUTH & SECURITY
     sendOTP: async (target: string, type: 'email' | 'phone'): Promise<{ success: boolean, code: string }> => {
         // Mock sending OTP
         console.log(`Sending OTP to ${type} (${target}): 1234`)
@@ -247,23 +386,57 @@ export const api = {
     verifyOTP: async (input: string): Promise<boolean> => {
         return new Promise(resolve => setTimeout(() => resolve(input === "1234"), 500))
     },
+    verifyPassword: async (input: string): Promise<boolean> => {
+        // Mock current password check
+        return new Promise(resolve => setTimeout(() => resolve(input === "password123"), 800))
+    },
     changePassword: async (newPass: string): Promise<boolean> => {
         return new Promise(resolve => setTimeout(() => resolve(true), 1000))
     },
+
+    // GENERAL DATA
     getActivities: async (): Promise<ActivityItem[]> => MOCK_ACTIVITIES,
     getNotifications: async (): Promise<NotificationItem[]> => MOCK_NOTIFICATIONS,
-    getVisitors: async (): Promise<VisitorItem[]> => MOCK_VISITORS, // In real app, filter by logged-in user's unit
+    markNotificationAsRead: async (id: number): Promise<boolean> => {
+        const notif = MOCK_NOTIFICATIONS.find(n => n.id === id)
+        if (notif) {
+            notif.read = true
+            return true
+        }
+        return false
+    },
+    markAllNotificationsAsRead: async (): Promise<boolean> => {
+        MOCK_NOTIFICATIONS.forEach(n => n.read = true)
+        return true
+    },
+    getUnreadCount: async (): Promise<number> => {
+        return MOCK_NOTIFICATIONS.filter(n => !n.read).length
+    },
+    simulateLiveNotification: async (): Promise<NotificationItem> => {
+        const newNotif: NotificationItem = {
+            id: Date.now(),
+            title: "New Community Message",
+            description: "Admin: Please verify your vehicle details by evening.",
+            time: "Just now",
+            type: "notice",
+            read: false
+        }
+        MOCK_NOTIFICATIONS.unshift(newNotif)
+        return newNotif
+    },
+
+    getVisitors: async (): Promise<VisitorItem[]> => MOCK_VISITORS,
     getAmenities: async (): Promise<AmenityItem[]> => MOCK_AMENITIES,
     getAmenityById: async (id: string) => MOCK_AMENITIES.find(a => a.id === id),
     getServiceRequests: async (): Promise<ServiceRequestItem[]> => MOCK_SERVICE_REQUESTS,
     getPayments: async (): Promise<PaymentItem[]> => MOCK_PAYMENTS,
 
     // SECURITY Methods
-    getGateEntries: async (): Promise<VisitorItem[]> => MOCK_VISITORS, // Security sees ALL
+    getGateEntries: async (): Promise<VisitorItem[]> => MOCK_VISITORS,
     verifyVisitorCode: async (code: string): Promise<VisitorItem | undefined> => MOCK_VISITORS.find(v => v.code === code),
 
     // FACILITY MANAGER Methods
-    getAllServiceRequests: async (): Promise<ServiceRequestItem[]> => MOCK_SERVICE_REQUESTS, // Manager sees ALL
+    getAllServiceRequests: async (): Promise<ServiceRequestItem[]> => MOCK_SERVICE_REQUESTS,
     getStaff: async (): Promise<StaffItem[]> => MOCK_STAFF,
     getInventory: async (): Promise<InventoryItem[]> => MOCK_INVENTORY,
 
@@ -306,66 +479,6 @@ export const api = {
     }
 }
 
-// --- Community Types ---
-export interface CommunityMessageItem {
-    id: number
-    sender: string
-    role: "security" | "resident" | "admin" | "me"
-    text: string
-    time: string
-    avatar: string
-    color: string
-}
-
-export interface CommunityEventItem {
-    id: number
-    title: string
-    time: string
-    location: string
-    participants: number
-    imageGradient: string
-    description?: string
-    organizer?: string
-    rsvpStatus?: "going" | "not_going" | "pending"
-    price?: string
-}
-
-// --- Community Mock Data ---
-const MOCK_COMMUNITY_MESSAGES: CommunityMessageItem[] = [
-    { id: 1, sender: "Ramesh (Security)", role: "security", text: "Notice: Water tanker has arrived at Gate 1.", time: "10:30 AM", avatar: "R", color: "bg-green-100 text-green-700" },
-    { id: 2, sender: "Priya (B-402)", role: "resident", text: "Great, thanks Ramesh! Is the lift working now?", time: "10:32 AM", avatar: "P", color: "bg-pink-100 text-pink-700" },
-    { id: 3, sender: "Rahul (A-101)", role: "resident", text: "Yes, I just used it. It's working fine.", time: "10:35 AM", avatar: "R", color: "bg-blue-100 text-blue-700" },
-    { id: 4, sender: "Admin", role: "admin", text: "Please remember to separate dry and wet waste before disposal.", time: "11:00 AM", avatar: "A", color: "bg-gray-800 text-white" },
-    { id: 5, sender: "Simran (C-505)", role: "resident", text: "Does anyone have a contact for a good carpenter?", time: "11:15 AM", avatar: "S", color: "bg-orange-100 text-orange-700" },
-]
-
-const MOCK_COMMUNITY_EVENTS: CommunityEventItem[] = [
-    {
-        id: 1,
-        title: "Morning Yoga Workshop",
-        time: "Sun, 7:00 AM",
-        location: "Yoga Deck",
-        participants: 12,
-        imageGradient: "from-orange-400 to-pink-500",
-        description: "Start your Sunday with a refreshing Hatha Yoga session led by certified instructor Meera. Suitable for all levels. Please bring your own mat.",
-        organizer: "Health Club",
-        price: "Free",
-        rsvpStatus: "pending"
-    },
-    {
-        id: 2,
-        title: "Kids Art Competition",
-        time: "Sat, 4:00 PM",
-        location: "Clubhouse",
-        participants: 28,
-        imageGradient: "from-blue-400 to-indigo-500",
-        description: "Annual art competition for kids aged 5-12. Theme: 'Future Cities'. Colors and paper will be provided. Exciting prizes for winners!",
-        organizer: "Cultural Committee",
-        price: "₹100",
-        rsvpStatus: "pending"
-    },
-]
-
 
 // --- Helper to map string types to Icons ---
 export const getIconForType = (type: string) => {
@@ -386,8 +499,6 @@ export const getIconForType = (type: string) => {
         case "clubhouse": return PartyPopper
         case "conference": return Users
         case "tennis": return Dumbbell // Placeholder
-        case "conference": return Conference
-        case "tennis": return Tennis
         case "Plumber": return Waves
         case "Electrician": return Zap
         case "Carpenter": return Hammer

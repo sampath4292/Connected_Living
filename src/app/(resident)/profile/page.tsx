@@ -40,11 +40,12 @@ export default function ProfilePage() {
     const [modal, setModal] = useState<{
         isOpen: boolean
         type: 'phone' | 'email' | 'password' | null
-        step: 'method' | 'confirm' | 'otp' | 'new-value' | 'success' // method only for password
+        step: 'method' | 'confirm' | 'otp' | 'password-check' | 'new-value' | 'success' // method only for password
         target?: string // where OTP was sent
     }>({ isOpen: false, type: null, step: 'confirm' })
 
     const [otpInput, setOtpInput] = useState("")
+    const [currentPassword, setCurrentPassword] = useState("")
     const [newValue, setNewValue] = useState("")
     const [loadingAction, setLoadingAction] = useState(false)
 
@@ -95,6 +96,7 @@ export default function ProfilePage() {
             setModal({ isOpen: true, type: 'password', step: 'method' })
         }
         setOtpInput("")
+        setCurrentPassword("")
         setNewValue("")
     }
 
@@ -131,6 +133,22 @@ export default function ProfilePage() {
         }
     }
 
+    const verifyCurrentPassword = async () => {
+        setLoadingAction(true)
+        try {
+            const isValid = await api.verifyPassword(currentPassword)
+            if (isValid) {
+                setModal(prev => ({ ...prev, step: 'new-value' }))
+            } else {
+                alert("Incorrect Password (Try password123)")
+            }
+        } catch (e) {
+            console.error(e)
+        } finally {
+            setLoadingAction(false)
+        }
+    }
+
     const submitChange = async () => {
         setLoadingAction(true)
         try {
@@ -152,6 +170,12 @@ export default function ProfilePage() {
             console.error(e)
         } finally {
             setLoadingAction(false)
+        }
+    }
+
+    const handleLogout = () => {
+        if (confirm("Are you sure you want to log out?")) {
+            router.push('/login')
         }
     }
 
@@ -277,7 +301,7 @@ export default function ProfilePage() {
 
                     {/* Change Password - Special Case */}
                     <button
-                        onClick={() => isEditing ? startEdit('password') : router.push('/change-password')}
+                        onClick={() => startEdit('password')}
                         className="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between mb-4 hover:bg-gray-50 transition-colors"
                     >
                         <div className="flex items-center gap-4">
@@ -309,7 +333,10 @@ export default function ProfilePage() {
                     </Link>
 
                     {/* Logout */}
-                    <button className="w-full bg-red-50 p-4 rounded-2xl flex items-center justify-between group hover:bg-red-100 transition-colors">
+                    <button
+                        onClick={handleLogout}
+                        className="w-full bg-red-50 p-4 rounded-2xl flex items-center justify-between group hover:bg-red-100 transition-colors"
+                    >
                         <div className="flex items-center gap-4">
                             <div className="h-12 w-12 rounded-xl bg-red-100 text-red-600 flex items-center justify-center group-hover:bg-red-200">
                                 <LogOut size={24} />
@@ -327,13 +354,27 @@ export default function ProfilePage() {
             {/* --- OTP MODAL --- */}
             {modal.isOpen && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+                    <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200 relative">
+                        <button
+                            onClick={() => setModal({ ...modal, isOpen: false })}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1"
+                        >
+                            <X size={20} />
+                        </button>
+
                         {modal.step === 'method' && (
                             <div className="space-y-4">
                                 <h3 className="text-lg font-bold text-center">Verify Identity</h3>
-                                <p className="text-sm text-center text-gray-500">How do you want to receive the OTP?</p>
-                                <Button onClick={() => sendOtp('email')} className="w-full bg-indigo-600 hover:bg-indigo-700">Email ({user.email})</Button>
-                                <Button onClick={() => sendOtp('phone')} variant="outline" className="w-full">Phone ({user.phone})</Button>
+                                <p className="text-sm text-center text-gray-500">How do you want to verify your identity?</p>
+                                <Button onClick={() => sendOtp('email')} className="w-full bg-indigo-600 hover:bg-indigo-700">
+                                    Send OTP to Email
+                                </Button>
+                                <Button onClick={() => sendOtp('phone')} className="w-full bg-indigo-600 hover:bg-indigo-700">
+                                    Send OTP to Phone
+                                </Button>
+                                <Button onClick={() => setModal({ ...modal, step: 'password-check' })} variant="outline" className="w-full">
+                                    Use Current Password
+                                </Button>
                                 <Button onClick={() => setModal({ ...modal, isOpen: false })} variant="ghost" className="w-full text-gray-500">Cancel</Button>
                             </div>
                         )}
@@ -367,7 +408,23 @@ export default function ProfilePage() {
                                 </Button>
                                 <div className="text-xs text-gray-400">Mock OTP: 1234</div>
                             </div>
+                        )}
 
+                        {modal.step === 'password-check' && (
+                            <div className="space-y-4 text-center">
+                                <h3 className="text-lg font-bold">Current Password</h3>
+                                <p className="text-sm text-gray-500">Enter your current password to continue</p>
+                                <Input
+                                    type="password"
+                                    placeholder="Current Password"
+                                    value={currentPassword}
+                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                />
+                                <Button onClick={verifyCurrentPassword} className="w-full bg-indigo-600 hover:bg-indigo-700" disabled={loadingAction || !currentPassword}>
+                                    {loadingAction ? <Loader2 className="animate-spin" /> : "Verify Password"}
+                                </Button>
+                                <div className="text-xs text-gray-400">Mock Pass: password123</div>
+                            </div>
                         )}
 
                         {modal.step === 'new-value' && (
