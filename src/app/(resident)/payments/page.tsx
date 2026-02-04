@@ -126,6 +126,7 @@ export default function PaymentsPage() {
                 <div className="flex p-1 bg-gray-100/80 rounded-xl">
                     <button
                         onClick={() => setActiveTab("pending")}
+                        suppressHydrationWarning
                         className={cn(
                             "flex-1 py-2 text-sm font-semibold rounded-lg transition-all",
                             activeTab === "pending" ? "bg-white text-[#1a237e] shadow-sm" : "text-gray-500 hover:text-gray-700"
@@ -135,6 +136,7 @@ export default function PaymentsPage() {
                     </button>
                     <button
                         onClick={() => setActiveTab("history")}
+                        suppressHydrationWarning
                         className={cn(
                             "flex-1 py-2 text-sm font-semibold rounded-lg transition-all",
                             activeTab === "history" ? "bg-white text-[#1a237e] shadow-sm" : "text-gray-500 hover:text-gray-700"

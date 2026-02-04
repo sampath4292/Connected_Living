@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Users, Wrench, Receipt, Dumbbell } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 // Import API and Types
 import { api, getIconForType, ActivityItem } from "@/lib/api"
 
@@ -24,7 +25,8 @@ export default function ResidentDashboard() {
             } catch (error) {
                 console.error("Failed to fetch dashboard data", error)
             } finally {
-                setLoading(false)
+                // Artificial delay to show skeleton for demo
+                setTimeout(() => setLoading(false), 800)
             }
         }
         fetchData()
@@ -37,6 +39,30 @@ export default function ResidentDashboard() {
 
         return () => clearInterval(interval)
     }, [])
+
+    if (loading) {
+        return (
+            <div className="flex flex-col min-h-screen bg-white lg:bg-transparent pb-24 lg:pb-0 p-6 lg:p-8 space-y-8">
+                <div className="flex justify-between items-center mb-4">
+                    <div>
+                        <Skeleton className="h-8 w-48 mb-2" />
+                        <Skeleton className="h-4 w-32" />
+                    </div>
+                    <Skeleton className="h-10 w-24 rounded-full" />
+                </div>
+
+                <Skeleton className="h-48 w-full rounded-3xl" />
+
+                <div className="grid grid-cols-4 gap-4">
+                    {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)}
+                </div>
+
+                <div className="space-y-4">
+                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full rounded-2xl" />)}
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="flex flex-col min-h-screen bg-white lg:bg-transparent pb-24 lg:pb-0">

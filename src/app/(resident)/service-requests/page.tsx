@@ -1,20 +1,26 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, Plus, Search, Filter } from "lucide-react"
+import { ArrowLeft, Plus, Search, Filter, Inbox } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { api, getIconForType, ServiceRequestItem } from "@/lib/api"
+import { Skeleton } from "@/components/ui/skeleton"
+import { EmptyState } from "@/components/empty-state"
 
 export default function ServiceRequestsPage() {
     const router = useRouter()
     const [activeTab, setActiveTab] = useState("open")
     const [requests, setRequests] = useState<ServiceRequestItem[]>([])
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         // Fetch data
-        api.getServiceRequests().then(setRequests)
+        api.getServiceRequests().then(data => {
+            setRequests(data)
+            setTimeout(() => setLoading(false), 500) // Demo delay
+        })
     }, [])
 
     const filteredRequests = activeTab === "open"
@@ -47,6 +53,7 @@ export default function ServiceRequestsPage() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                             <input
                                 type="text"
+                                suppressHydrationWarning
                                 placeholder="Search requests..."
                                 className="w-full h-12 pl-10 pr-4 rounded-xl bg-gray-50 border-none focus:ring-2 focus:ring-[#1a237e]/20 text-sm outline-none transition-all"
                             />
@@ -59,6 +66,7 @@ export default function ServiceRequestsPage() {
                     <div className="flex p-1 bg-gray-100/80 rounded-xl">
                         <button
                             onClick={() => setActiveTab("open")}
+                            suppressHydrationWarning
                             className={cn(
                                 "flex-1 py-2 text-sm font-semibold rounded-lg transition-all",
                                 activeTab === "open" ? "bg-white text-[#1a237e] shadow-sm" : "text-gray-500 hover:text-gray-700"
@@ -68,6 +76,7 @@ export default function ServiceRequestsPage() {
                         </button>
                         <button
                             onClick={() => setActiveTab("closed")}
+                            suppressHydrationWarning
                             className={cn(
                                 "flex-1 py-2 text-sm font-semibold rounded-lg transition-all",
                                 activeTab === "closed" ? "bg-white text-[#1a237e] shadow-sm" : "text-gray-500 hover:text-gray-700"
@@ -80,8 +89,23 @@ export default function ServiceRequestsPage() {
 
                 {/* List */}
                 <div className="space-y-4">
-                    {filteredRequests.length === 0 ? (
-                        <div className="text-center py-10 text-gray-400 text-sm">No service requests found.</div>
+                    {loading ? (
+                        Array(5).fill(0).map((_, i) => (
+                            <div key={i} className="flex gap-4 p-4 border border-gray-100 rounded-2xl">
+                                <Skeleton className="h-12 w-12 rounded-xl" />
+                                <div className="flex-1 space-y-2">
+                                    <Skeleton className="h-4 w-1/3" />
+                                    <Skeleton className="h-4 w-3/4" />
+                                </div>
+                            </div>
+                        ))
+                    ) : filteredRequests.length === 0 ? (
+                        <EmptyState
+                            icon={Inbox}
+                            title="No Service Requests"
+                            description={activeTab === 'open' ? "You don't have any active service requests." : "No past service requests found."}
+                            action={activeTab === 'open' ? { label: "Create Request", onClick: () => router.push('/service-requests/new') } : undefined}
+                        />
                     ) : (
                         filteredRequests.map((req) => {
                             const Icon = getIconForType(req.category)

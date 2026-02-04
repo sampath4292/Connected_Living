@@ -1,24 +1,30 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowLeft, Plus, Search } from "lucide-react"
+import { ArrowLeft, Plus, Search, Clock, Filter, Ghost } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { api, getIconForType, VisitorItem } from "@/lib/api"
+import { Skeleton } from "@/components/ui/skeleton"
+import { EmptyState } from "@/components/empty-state"
 
 export default function VisitorsPage() {
     const router = useRouter()
-    const [activeTab, setActiveTab] = useState("active")
+    const [activeTab, setActiveTab] = useState("upcoming")
     const [visitors, setVisitors] = useState<VisitorItem[]>([])
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        api.getVisitors().then(setVisitors)
+        api.getVisitors().then(data => {
+            setVisitors(data)
+            setTimeout(() => setLoading(false), 500)
+        })
     }, [])
 
-    const filteredVisitors = activeTab === "active"
-        ? visitors.filter(v => ["Expected", "Inside"].includes(v.status))
-        : visitors.filter(v => ["Left", "Denied"].includes(v.status))
+    const filteredVisitors = activeTab === "upcoming"
+        ? visitors.filter(v => ["Expected", "Inside", "Gate Pending"].includes(v.status))
+        : visitors.filter(v => ["Departed", "Denied", "Expired"].includes(v.status))
 
     return (
         <div className="min-h-screen bg-white pb-24 lg:pb-8">
@@ -26,7 +32,7 @@ export default function VisitorsPage() {
             <div className="sticky top-0 bg-white z-10 border-b border-gray-100 lg:border-none p-4 lg:p-6 lg:bg-transparent">
                 <div className="flex items-center justify-between max-w-4xl mx-auto w-full">
                     <div className="flex items-center gap-3">
-                        <button onClick={() => router.back()} className="p-2 -ml-2 text-[#1a237e] hover:bg-gray-50 rounded-full lg:hidden">
+                        <button onClick={() => router.back()} suppressHydrationWarning className="p-2 -ml-2 text-[#1a237e] hover:bg-gray-50 rounded-full lg:hidden">
                             <ArrowLeft size={24} />
                         </button>
                         <h1 className="text-xl font-bold text-[#1a237e] lg:text-3xl">My Visitors</h1>
@@ -45,6 +51,7 @@ export default function VisitorsPage() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                         <input
                             type="text"
+                            suppressHydrationWarning
                             placeholder="Search visitors..."
                             className="w-full h-12 pl-10 pr-4 rounded-xl bg-gray-50 border-none focus:ring-2 focus:ring-[#1a237e]/20 text-sm outline-none transition-all"
                         />
@@ -52,16 +59,18 @@ export default function VisitorsPage() {
 
                     <div className="flex p-1 bg-gray-100/80 rounded-xl">
                         <button
-                            onClick={() => setActiveTab("active")}
+                            onClick={() => setActiveTab("upcoming")}
+                            suppressHydrationWarning
                             className={cn(
                                 "flex-1 py-2 text-sm font-semibold rounded-lg transition-all",
-                                activeTab === "active" ? "bg-white text-[#1a237e] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                activeTab === "upcoming" ? "bg-white text-[#1a237e] shadow-sm" : "text-gray-500 hover:text-gray-700"
                             )}
                         >
-                            Active & Upcoming
+                            Upcoming & Active
                         </button>
                         <button
                             onClick={() => setActiveTab("history")}
+                            suppressHydrationWarning
                             className={cn(
                                 "flex-1 py-2 text-sm font-semibold rounded-lg transition-all",
                                 activeTab === "history" ? "bg-white text-[#1a237e] shadow-sm" : "text-gray-500 hover:text-gray-700"

@@ -40,6 +40,7 @@ export default function AmenitiesPage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                     <input
                         type="text"
+                        suppressHydrationWarning
                         placeholder="Find an amenity..."
                         className="w-full h-12 pl-10 pr-4 rounded-xl bg-gray-50 border-none focus:ring-2 focus:ring-[#1a237e]/20 text-sm outline-none transition-all"
                     />
