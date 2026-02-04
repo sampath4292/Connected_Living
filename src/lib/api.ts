@@ -164,6 +164,11 @@ export interface CommunityEventItem {
     price?: string
 }
 
+export type InviteParams =
+    | { type: "Guest"; name: string; phone?: string; email?: string; date: string; time: string; singleEntry: boolean }
+    | { type: "Delivery"; vendor: string; name?: string; phone?: string; date: string; time?: string }
+    | { type: "Cab"; driverName: string; vehicleNo: string; service: string; date: string; time?: string; model?: string }
+
 
 // --- Mock Data (Central Database) ---
 
@@ -434,6 +439,32 @@ export const api = {
     // SECURITY Methods
     getGateEntries: async (): Promise<VisitorItem[]> => MOCK_VISITORS,
     verifyVisitorCode: async (code: string): Promise<VisitorItem | undefined> => MOCK_VISITORS.find(v => v.code === code),
+
+    inviteVisitor: async (data: InviteParams): Promise<{ success: boolean; code?: string; message: string }> => {
+        // Mock processing
+        return new Promise(resolve => setTimeout(() => {
+            const code = Math.floor(1000 + Math.random() * 9000).toString()
+
+            // In a real app, this would save to DB and trigger SMS/Email or Security Notification
+            const newVisitor: VisitorItem = {
+                id: Date.now(),
+                unitId: "A-101",
+                hostName: "Vikram",
+                name: "name" in data ? (data.name || data.vendor) : (data.driverName), // Fallback logic
+                type: data.type,
+                code: code,
+                time: "time" in data && data.time ? `${data.date}, ${data.time}` : `${data.date}`,
+                status: "Expected"
+            }
+            MOCK_VISITORS.unshift(newVisitor)
+
+            if (data.type === 'Guest') {
+                resolve({ success: true, code, message: "Invite Code Generated" })
+            } else {
+                resolve({ success: true, message: "Details shared with Security" })
+            }
+        }, 1200))
+    },
 
     // FACILITY MANAGER Methods
     getAllServiceRequests: async (): Promise<ServiceRequestItem[]> => MOCK_SERVICE_REQUESTS,

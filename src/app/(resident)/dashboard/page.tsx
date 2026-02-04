@@ -91,9 +91,9 @@ export default function ResidentDashboard() {
                         <div>
                             <h3 className="text-[#1a237e] font-bold text-lg mb-4 lg:text-xl lg:mb-6">Quick Actions</h3>
                             <div className="grid grid-cols-4 gap-4 px-2 lg:px-0 lg:gap-6">
-                                <QuickAction icon={Receipt} label="Pay Bills" href="/payments" />
-                                <QuickAction icon={Dumbbell} label="Amenities" href="/amenities" />
                                 <QuickAction icon={Users} label="Visitors" href="/visitors" />
+                                <QuickAction icon={Dumbbell} label="Amenities" href="/amenities" />
+                                <QuickAction icon={Receipt} label="Pay Bills" href="/payments" />
                                 <QuickAction icon={Wrench} label="Complaints" href="/service-requests" />
                             </div>
                         </div>
