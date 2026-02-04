@@ -169,6 +169,20 @@ export type InviteParams =
     | { type: "Delivery"; vendor: string; name?: string; phone?: string; date: string; time?: string }
     | { type: "Cab"; driverName: string; vehicleNo: string; service: string; date: string; time?: string; model?: string }
 
+export interface SavedVisitorItem {
+    id: string
+    name: string
+    type: "Guest" | "Delivery" | "Cab"
+    avatar?: string
+    relation?: string // e.g., "Mom", "Maid"
+    lastVisit?: string
+}
+
+const MOCK_SAVED_VISITORS: SavedVisitorItem[] = [
+    { id: "SV-1", name: "Mohan", type: "Guest", relation: "Tution Teacher", lastVisit: "2 days ago", avatar: "M" },
+    { id: "SV-2", name: "Ramesh Electrician", type: "Guest", relation: "Service", lastVisit: "1 week ago", avatar: "R" },
+    { id: "SV-3", name: "School Van", type: "Cab", relation: "Daily", lastVisit: "Yesterday" },
+]
 
 // --- Mock Data (Central Database) ---
 
@@ -439,6 +453,19 @@ export const api = {
     // SECURITY Methods
     getGateEntries: async (): Promise<VisitorItem[]> => MOCK_VISITORS,
     verifyVisitorCode: async (code: string): Promise<VisitorItem | undefined> => MOCK_VISITORS.find(v => v.code === code),
+
+    getSavedVisitors: async (): Promise<SavedVisitorItem[]> => new Promise(resolve => setTimeout(() => resolve(MOCK_SAVED_VISITORS), 400)),
+    getSavedVisitorById: async (id: string): Promise<SavedVisitorItem | undefined> => {
+        return new Promise(resolve => setTimeout(() => resolve(MOCK_SAVED_VISITORS.find(v => v.id === id)), 400))
+    },
+    updateSavedVisitor: async (id: string, data: Partial<SavedVisitorItem>): Promise<SavedVisitorItem | undefined> => {
+        const index = MOCK_SAVED_VISITORS.findIndex(v => v.id === id)
+        if (index !== -1) {
+            Object.assign(MOCK_SAVED_VISITORS[index], data)
+            return new Promise(resolve => setTimeout(() => resolve(MOCK_SAVED_VISITORS[index]), 600))
+        }
+        return undefined
+    },
 
     inviteVisitor: async (data: InviteParams): Promise<{ success: boolean; code?: string; message: string }> => {
         // Mock processing
