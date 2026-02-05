@@ -207,7 +207,7 @@ export interface AttendanceItem {
 const MOCK_SAVED_VISITORS: SavedVisitorItem[] = [
     { id: "SV-1", name: "Mohan", type: "Guest", relation: "Tution Teacher", phone: "9876543210", email: "mohan@tutor.com", lastVisit: "2 days ago", avatar: "M" },
     { id: "SV-2", name: "Ramesh Electrician", type: "Guest", relation: "Service", phone: "9870000000", lastVisit: "1 week ago", avatar: "R" },
-    { id: "SV-5", name: "Rahul Sharma", type: "Guest", relation: "Friend", phone: "9988776655", lastVisit: "Yesterday", avatar: "R" },
+    { id: "SV-6", name: "Priya Singh", type: "Guest", relation: "Sister", phone: "9988776611", lastVisit: "Today", avatar: "P" },
 ]
 
 const MOCK_FREQUENT_VISITORS: FrequentVisitorItem[] = [
@@ -613,7 +613,7 @@ export const api = {
         return new Promise(resolve => setTimeout(() => {
             const code = Math.floor(1000 + Math.random() * 9000).toString()
 
-            // In a real app, this would save to DB and trigger SMS/Email or Security Notification
+            // 1. Create Active Visitor Entry
             const newVisitor: VisitorItem = {
                 id: Date.now(),
                 unitId: "A-101",
@@ -625,6 +625,19 @@ export const api = {
                 status: "Expected"
             }
             MOCK_VISITORS.unshift(newVisitor)
+
+            // 2. Auto-save to "Saved Visitors" if not exists (Only for Guests)
+            const visitorName = newVisitor.name
+            const exists = MOCK_SAVED_VISITORS.find(v => v.name.toLowerCase() === visitorName.toLowerCase())
+
+            if (!exists && data.type === 'Guest') {
+                MOCK_SAVED_VISITORS.push({
+                    id: `SV-${Date.now()}`,
+                    name: visitorName,
+                    type: data.type,
+                    relation: data.type === 'Guest' ? 'Friend' : data.type, // Default relation
+                })
+            }
 
             if (data.type === 'Guest') {
                 resolve({ success: true, code, message: "Invite Code Generated" })
