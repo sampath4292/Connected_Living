@@ -13,7 +13,8 @@ export default function AmenityBookingPage({ params }: { params: Promise<{ id: s
     const [amenity, setAmenity] = useState<AmenityItem | null>(null)
     const [loading, setLoading] = useState(true)
     const [date, setDate] = useState("")
-    const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
+    const [selectedSlots, setSelectedSlots] = useState<string[]>([])
+    const [booking, setBooking] = useState(false)
 
     const slots = ["06:00 AM", "07:00 AM", "08:00 AM", "05:00 PM", "06:00 PM", "07:00 PM"]
 
@@ -23,6 +24,30 @@ export default function AmenityBookingPage({ params }: { params: Promise<{ id: s
             setLoading(false)
         })
     }, [id])
+
+    const toggleSlot = (slot: string) => {
+        if (selectedSlots.includes(slot)) {
+            setSelectedSlots(prev => prev.filter(s => s !== slot))
+        } else {
+            setSelectedSlots(prev => [...prev, slot])
+        }
+    }
+
+    const handleConfirm = async () => {
+        if (!date) {
+            alert("Please select a date")
+            return
+        }
+        if (selectedSlots.length === 0) {
+            alert("Please select at least one slot")
+            return
+        }
+
+        setBooking(true)
+        await api.bookAmenity(id, date, selectedSlots)
+        setBooking(false)
+        router.push("/amenities/my-bookings")
+    }
 
     if (loading) return <div className="p-8 text-center">Loading...</div>
     if (!amenity) return <div className="p-8 text-center">Amenity not found</div>
@@ -96,21 +121,26 @@ export default function AmenityBookingPage({ params }: { params: Promise<{ id: s
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Available Slots</label>
                                 <div className="grid grid-cols-3 gap-2">
-                                    {slots.map((slot) => (
-                                        <button
-                                            key={slot}
-                                            onClick={() => setSelectedSlot(slot)}
-                                            className={cn(
-                                                "py-2 px-1 text-xs font-bold rounded-lg border transition-all",
-                                                selectedSlot === slot
-                                                    ? "bg-[#1a237e] text-white border-[#1a237e] shadow-md transform scale-105"
-                                                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
-                                            )}
-                                        >
-                                            {slot}
-                                        </button>
-                                    ))}
+                                    {slots.map((slot) => {
+                                        const isSelected = selectedSlots.includes(slot)
+                                        return (
+                                            <button
+                                                key={slot}
+                                                onClick={() => toggleSlot(slot)}
+                                                className={cn(
+                                                    "py-2 px-1 text-xs font-bold rounded-lg border transition-all",
+                                                    isSelected
+                                                        ? "bg-[#1a237e] text-white border-[#1a237e] shadow-md transform scale-105"
+                                                        : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                                                )}
+                                            >
+                                                {slot}
+                                                {isSelected && <span className="ml-1 text-[10px] opacity-70">✓</span>}
+                                            </button>
+                                        )
+                                    })}
                                 </div>
+                                <p className="text-xs text-gray-400 text-right mt-1">{selectedSlots.length} slot(s) selected</p>
                             </div>
 
                             <div className="pt-4">
@@ -119,11 +149,18 @@ export default function AmenityBookingPage({ params }: { params: Promise<{ id: s
                                     <span className="text-xl font-bold text-[#1a237e]">Free</span>
                                 </div>
                                 <button
-                                    className="w-full h-14 bg-[#1a237e] hover:bg-blue-900 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                                    onClick={() => router.push('/amenities')}
+                                    className="w-full h-14 bg-[#1a237e] hover:bg-blue-900 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                                    onClick={handleConfirm}
+                                    disabled={booking}
                                 >
-                                    <span>Confirm Booking</span>
-                                    <CheckCircle2 size={20} />
+                                    {booking ? (
+                                        <span>Confirming...</span>
+                                    ) : (
+                                        <>
+                                            <span>Confirm Booking</span>
+                                            <CheckCircle2 size={20} />
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>

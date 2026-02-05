@@ -33,12 +33,12 @@ export default function ServiceRequestsPage() {
             <div className="sticky top-0 bg-white z-10 border-b border-gray-100 lg:border-none p-4 lg:p-6 lg:bg-transparent">
                 <div className="flex items-center justify-between max-w-4xl mx-auto w-full">
                     <div className="flex items-center gap-3">
-                        <button onClick={() => router.back()} className="p-2 -ml-2 text-[#1a237e] hover:bg-gray-50 rounded-full lg:hidden">
+                        <button onClick={() => router.back()} suppressHydrationWarning className="p-2 -ml-2 text-[#1a237e] hover:bg-gray-50 rounded-full lg:hidden">
                             <ArrowLeft size={24} />
                         </button>
                         <h1 className="text-xl font-bold text-[#1a237e] lg:text-3xl">Service Requests</h1>
                     </div>
-                    <Link href="/service-requests/new" className="hidden lg:flex items-center gap-2 bg-[#1a237e] text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-900 transition-colors shadow-sm">
+                    <Link href="/service-requests/new" suppressHydrationWarning className="hidden lg:flex items-center gap-2 bg-[#1a237e] text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-900 transition-colors shadow-sm">
                         <Plus size={20} />
                         <span>New Request</span>
                     </Link>
@@ -58,7 +58,7 @@ export default function ServiceRequestsPage() {
                                 className="w-full h-12 pl-10 pr-4 rounded-xl bg-gray-50 border-none focus:ring-2 focus:ring-[#1a237e]/20 text-sm outline-none transition-all"
                             />
                         </div>
-                        <button className="h-12 w-12 flex items-center justify-center rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">
+                        <button suppressHydrationWarning className="h-12 w-12 flex items-center justify-center rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">
                             <Filter size={20} />
                         </button>
                     </div>
@@ -116,7 +116,8 @@ export default function ServiceRequestsPage() {
                             if (req.status === "Resolved") statusColor = "bg-green-100 text-green-700"
 
                             return (
-                                <div key={req.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-default group">
+
+                                <Link href={`/service-requests/${req.id}`} key={req.id} className="block bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow group">
                                     <div className="flex items-start gap-4">
                                         <div className="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0 text-indigo-600 group-hover:bg-[#1a237e] group-hover:text-white transition-colors">
                                             <Icon size={24} />
@@ -135,8 +136,9 @@ export default function ServiceRequestsPage() {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </Link>
                             )
+
                         })
                     )}
                 </div>

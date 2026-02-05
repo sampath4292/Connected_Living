@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Users, Wrench, Receipt, Dumbbell } from "lucide-react"
+import { Users, Wrench, Receipt, Dumbbell, AlertTriangle, X } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -12,16 +12,19 @@ export default function ResidentDashboard() {
     const [activityLog, setActivityLog] = useState<ActivityItem[]>([])
     const [unreadCount, setUnreadCount] = useState(0)
     const [loading, setLoading] = useState(true)
+    const [isSOSActive, setIsSOSActive] = useState(false)
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [activities, count] = await Promise.all([
+                const [activities, count, sosStatus] = await Promise.all([
                     api.getActivities(),
-                    api.getUnreadCount()
+                    api.getUnreadCount(),
+                    api.getSOSStatus()
                 ])
                 setActivityLog(activities)
                 setUnreadCount(count)
+                setIsSOSActive(sosStatus)
             } catch (error) {
                 console.error("Failed to fetch dashboard data", error)
             } finally {
@@ -35,7 +38,9 @@ export default function ResidentDashboard() {
         const interval = setInterval(async () => {
             const count = await api.getUnreadCount()
             setUnreadCount(count)
-        }, 5000)
+            const sos = await api.getSOSStatus()
+            setIsSOSActive(sos)
+        }, 3000)
 
         return () => clearInterval(interval)
     }, [])
@@ -150,6 +155,36 @@ export default function ResidentDashboard() {
 
                     {/* Right Column (Side Widgets) */}
                     <div className="mt-8 lg:mt-0 lg:col-span-4 space-y-8">
+                        {/* SOS Active Card */}
+                        {isSOSActive && (
+                            <div className="bg-red-500 rounded-3xl p-6 text-white shadow-xl animate-pulse relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-20">
+                                    <AlertTriangle size={120} />
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center animate-bounce">
+                                            <AlertTriangle size={20} />
+                                        </div>
+                                        <span className="font-bold tracking-wider uppercase text-sm">Emergency Active</span>
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-1">Help is on the way!</h3>
+                                    <p className="text-white/80 text-sm mb-6">Security has been alerted with your location.</p>
+
+                                    <button
+                                        onClick={async () => {
+                                            await api.cancelSOS()
+                                            setIsSOSActive(false)
+                                        }}
+                                        className="w-full bg-white text-red-600 font-bold py-3 rounded-xl shadow-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <X size={18} />
+                                        <span>Cancel Emergency</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         <div>
                             <h3 className="text-[#1a237e] font-bold text-lg mb-4 lg:text-xl lg:mb-6">Recent Activity</h3>
                             <div className="space-y-4">

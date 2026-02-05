@@ -73,13 +73,16 @@ export interface AmenityItem {
 export interface ServiceRequestItem {
     id: string
     unitId: string // Requesting unit
-    category: "Electrician" | "Plumber" | "Carpenter" | "Appliance" | "Others"
+    category: "Electrician" | "Plumber" | "Carpenter" | "Appliance" | "Community" | "Others"
     title: string
     description: string
     status: "Open" | "In Progress" | "Resolved" | "Closed"
     date: string
     urgency: "Low" | "Medium" | "High"
     image?: string
+    photo?: string // Uploaded photo
+    preferredDate?: string
+    preferredTime?: string
     assignedTo?: string // Staff ID
 }
 
@@ -175,13 +178,57 @@ export interface SavedVisitorItem {
     type: "Guest" | "Delivery" | "Cab"
     avatar?: string
     relation?: string // e.g., "Mom", "Maid"
+    relation?: string // e.g., "Mom", "Maid"
+    phone?: string
+    email?: string
     lastVisit?: string
 }
 
+export interface FrequentVisitorItem {
+    id: string
+    name: string
+    type: "Guest" | "Delivery" | "Cab" | "Staff"
+    avatar?: string
+    relation?: string
+    validUntil: string
+    allowedTimeSlot?: string
+    isActive: boolean
+}
+
+export interface AttendanceItem {
+    id: string
+    date: string // Display string
+    isoDate: string // YYYY-MM-DD for calendar
+    checkIn: string
+    checkOut?: string
+    status: "Present" | "Absent" | "Half-day"
+}
+
 const MOCK_SAVED_VISITORS: SavedVisitorItem[] = [
-    { id: "SV-1", name: "Mohan", type: "Guest", relation: "Tution Teacher", lastVisit: "2 days ago", avatar: "M" },
-    { id: "SV-2", name: "Ramesh Electrician", type: "Guest", relation: "Service", lastVisit: "1 week ago", avatar: "R" },
-    { id: "SV-3", name: "School Van", type: "Cab", relation: "Daily", lastVisit: "Yesterday" },
+    { id: "SV-1", name: "Mohan", type: "Guest", relation: "Tution Teacher", phone: "9876543210", email: "mohan@tutor.com", lastVisit: "2 days ago", avatar: "M" },
+    { id: "SV-2", name: "Ramesh Electrician", type: "Guest", relation: "Service", phone: "9870000000", lastVisit: "1 week ago", avatar: "R" },
+    { id: "SV-5", name: "Rahul Sharma", type: "Guest", relation: "Friend", phone: "9988776655", lastVisit: "Yesterday", avatar: "R" },
+]
+
+const MOCK_FREQUENT_VISITORS: FrequentVisitorItem[] = [
+    { id: "FV-1", name: "Sunita Helper", type: "Staff", relation: "Maid", validUntil: "2024-12-31", allowedTimeSlot: "Morning (8am-12pm)", isActive: true, avatar: "S" },
+    { id: "FV-2", name: "School Van", type: "Cab", relation: "Daily Drop", validUntil: "2024-06-30", allowedTimeSlot: "Afternoon (2pm-4pm)", isActive: true },
+]
+
+export interface BookingItem {
+    id: string
+    userId: string
+    amenityId: string
+    amenityName: string
+    date: string
+    slots: string[]
+    status: "Confirmed" | "Cancelled" | "Completed"
+    timestamp: number // for sorting
+}
+
+const MOCK_BOOKINGS: BookingItem[] = [
+    { id: "B-1", userId: "U-001", amenityId: "pool", amenityName: "Swimming Pool", date: "2024-02-10", slots: ["07:00 AM"], status: "Completed", timestamp: 1707529200000 },
+    { id: "B-2", userId: "U-001", amenityId: "tennis", amenityName: "Tennis Court", date: "2024-02-15", slots: ["06:00 PM", "07:00 PM"], status: "Confirmed", timestamp: 1707961200000 }
 ]
 
 // --- Mock Data (Central Database) ---
@@ -217,7 +264,9 @@ const MOCK_SERVICE_REQUESTS: ServiceRequestItem[] = [
         status: "In Progress",
         date: "Today, 10:30 AM",
         urgency: "High",
-        assignedTo: "S-002"
+        assignedTo: "S-002",
+        photo: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+        preferredDate: "2024-02-12"
     },
     {
         id: "SR-0998",
@@ -228,7 +277,8 @@ const MOCK_SERVICE_REQUESTS: ServiceRequestItem[] = [
         status: "Resolved",
         date: "Jan 28, 2024",
         urgency: "Medium",
-        assignedTo: "S-001"
+        assignedTo: "S-001",
+        preferredDate: "2024-01-29"
     },
     {
         id: "SR-0992",
@@ -339,6 +389,9 @@ const MOCK_COMMUNITY_EVENTS: CommunityEventItem[] = [
 
 
 // --- API Methods ---
+// Mock State
+let MOCK_SOS_ACTIVE = false
+
 export const api = {
     // USER
     getUserProfile: async (): Promise<UserItem | undefined> => new Promise(resolve => setTimeout(() => resolve(MOCK_USERS[0]), 500)),
@@ -447,7 +500,95 @@ export const api = {
     getVisitors: async (): Promise<VisitorItem[]> => MOCK_VISITORS,
     getAmenities: async (): Promise<AmenityItem[]> => MOCK_AMENITIES,
     getAmenityById: async (id: string) => MOCK_AMENITIES.find(a => a.id === id),
+
+    getMyBookings: async (): Promise<BookingItem[]> => {
+        return new Promise(resolve => setTimeout(() => resolve([...MOCK_BOOKINGS].sort((a, b) => b.timestamp - a.timestamp)), 500))
+    },
+    getBookingById: async (id: string): Promise<BookingItem | undefined> => {
+        return new Promise(resolve => setTimeout(() => resolve(MOCK_BOOKINGS.find(b => b.id === id)), 400))
+    },
+
+    bookAmenity: async (amenityId: string, date: string, slots: string[]): Promise<boolean> => {
+        const amenity = MOCK_AMENITIES.find(a => a.id === amenityId)
+        if (!amenity) return false
+
+        const newBooking: BookingItem = {
+            id: `B-${Date.now()}`,
+            userId: "U-001",
+            amenityId,
+            amenityName: amenity.name,
+            date,
+            slots,
+            status: "Confirmed",
+            timestamp: Date.now()
+        }
+        MOCK_BOOKINGS.unshift(newBooking)
+        return new Promise(resolve => setTimeout(() => resolve(true), 800))
+    },
+
     getServiceRequests: async (): Promise<ServiceRequestItem[]> => MOCK_SERVICE_REQUESTS,
+    getServiceRequestById: async (id: string): Promise<ServiceRequestItem | undefined> => new Promise(resolve => setTimeout(() => resolve(MOCK_SERVICE_REQUESTS.find(r => r.id === id)), 400)),
+    // SOS Feature
+    triggerSOS: async (): Promise<boolean> => {
+        MOCK_SOS_ACTIVE = true
+        return new Promise(resolve => setTimeout(() => resolve(true), 800))
+    },
+    cancelSOS: async (): Promise<boolean> => {
+        MOCK_SOS_ACTIVE = false
+        return new Promise(resolve => setTimeout(() => resolve(true), 500))
+    },
+    getSOSStatus: async (): Promise<boolean> => {
+        return new Promise(resolve => setTimeout(() => resolve(MOCK_SOS_ACTIVE), 200))
+    },
+    getVisitorAttendance: async (id: string): Promise<AttendanceItem[]> => {
+        // Mock attendance for last 5 days
+        const today = new Date()
+        const formatDate = (date: Date) => date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+        const formatIso = (date: Date) => date.toISOString().split('T')[0]
+
+        const days = Array.from({ length: 5 }, (_, i) => {
+            const d = new Date(today)
+            d.setDate(today.getDate() - i)
+            return d
+        })
+
+        const data: AttendanceItem[] = [
+            { id: "ATT-1", date: `Today, ${formatDate(days[0])}`, isoDate: formatIso(days[0]), checkIn: "08:30 AM", status: "Present" },
+            { id: "ATT-2", date: `Yesterday, ${formatDate(days[1])}`, isoDate: formatIso(days[1]), checkIn: "08:35 AM", checkOut: "04:00 PM", status: "Present" },
+            { id: "ATT-3", date: `${days[2].toLocaleDateString('en-US', { weekday: 'short' })}, ${formatDate(days[2])}`, isoDate: formatIso(days[2]), checkIn: "08:30 AM", checkOut: "04:15 PM", status: "Present" },
+            { id: "ATT-4", date: `${days[3].toLocaleDateString('en-US', { weekday: 'short' })}, ${formatDate(days[3])}`, isoDate: formatIso(days[3]), checkIn: "-", status: "Absent" },
+            { id: "ATT-5", date: `${days[4].toLocaleDateString('en-US', { weekday: 'short' })}, ${formatDate(days[4])}`, isoDate: formatIso(days[4]), checkIn: "09:00 AM", checkOut: "01:00 PM", status: "Half-day" },
+        ]
+        return new Promise(resolve => setTimeout(() => resolve(data), 600))
+    },
+
+    // Frequent Visitors
+    getFrequentVisitors: async (): Promise<FrequentVisitorItem[]> => {
+        return new Promise(resolve => setTimeout(() => resolve(MOCK_FREQUENT_VISITORS), 600))
+    },
+    getFrequentVisitorById: async (id: string): Promise<FrequentVisitorItem | undefined> => {
+        return new Promise(resolve => setTimeout(() => resolve(MOCK_FREQUENT_VISITORS.find(v => v.id === id)), 400))
+    },
+    addFrequentVisitor: async (visitor: Omit<FrequentVisitorItem, "id">): Promise<boolean> => {
+        const newItem: FrequentVisitorItem = {
+            ...visitor,
+            id: `FV-${Date.now()}`
+        }
+        MOCK_FREQUENT_VISITORS.push(newItem)
+        return new Promise(resolve => setTimeout(() => resolve(true), 1000))
+    },
+    updateFrequentVisitor: async (id: string, updates: Partial<FrequentVisitorItem>): Promise<boolean> => {
+        const index = MOCK_FREQUENT_VISITORS.findIndex(v => v.id === id)
+        if (index !== -1) {
+            Object.assign(MOCK_FREQUENT_VISITORS[index], updates)
+            return new Promise(resolve => setTimeout(() => resolve(true), 1000))
+        }
+        return new Promise(resolve => setTimeout(() => resolve(false), 500))
+    },
+
+    getStaffById: async (id: string): Promise<StaffItem | undefined> => {
+        return new Promise(resolve => setTimeout(() => resolve(MOCK_STAFF.find(s => s.id === id)), 400))
+    },
     getPayments: async (): Promise<PaymentItem[]> => MOCK_PAYMENTS,
 
     // SECURITY Methods
