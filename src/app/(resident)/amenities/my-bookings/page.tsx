@@ -89,7 +89,7 @@ export default function MyBookingsPage() {
                             const Icon = getIconForType(iconType) || Calendar
 
                             return (
-                                <Link href={`/amenities/my-bookings/${booking.id}`} key={booking.id} className="group block bg-white border border-gray-100 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all">
+                                <Link href={`/amenities/my-bookings/${booking.id}`} key={booking.id} className="group block bg-white border border-gray-100 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all relative">
                                     <div className="flex flex-col sm:flex-row gap-5">
                                         {/* Icon Box */}
                                         <div className="flex-shrink-0">
@@ -111,8 +111,9 @@ export default function MyBookingsPage() {
                                                 <span className={cn(
                                                     "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide",
                                                     booking.status === "Confirmed" ? "bg-green-100 text-green-700" :
-                                                        booking.status === "Completed" ? "bg-gray-100 text-gray-600" :
-                                                            "bg-red-100 text-red-700"
+                                                        booking.status === "Pending" ? "bg-orange-100 text-orange-700" :
+                                                            booking.status === "Completed" ? "bg-gray-100 text-gray-600" :
+                                                                "bg-red-100 text-red-700"
                                                 )}>
                                                     {booking.status}
                                                 </span>
@@ -128,11 +129,27 @@ export default function MyBookingsPage() {
                                                 ))}
                                             </div>
 
-                                            {/* Meta/Price placeholder if needed */}
-                                            <div className="pt-2 border-t border-gray-50 flex justify-between items-center text-xs text-gray-400">
-                                                <span>Booking ID: {booking.id}</span>
-                                                {booking.status === "Confirmed" && (
-                                                    <span className="text-red-500 font-semibold group-hover:underline">View Ticket</span>
+                                            {/* Footer Actions */}
+                                            <div className="pt-2 border-t border-gray-50 flex justify-between items-center">
+                                                <span className="text-xs text-gray-400">ID: {booking.id}</span>
+
+                                                {(booking.status === "Confirmed" || booking.status === "Pending") && (
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={async (e) => {
+                                                                e.preventDefault()
+                                                                e.stopPropagation()
+                                                                if (confirm("Cancel this booking?")) {
+                                                                    await api.cancelBooking(booking.id)
+                                                                    setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: "Cancelled" } : b))
+                                                                }
+                                                            }}
+                                                            className="text-xs font-semibold text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                        <span className="text-xs text-indigo-600 font-semibold group-hover:underline">View Ticket</span>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

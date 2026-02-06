@@ -13,18 +13,21 @@ export default function ResidentDashboard() {
     const [unreadCount, setUnreadCount] = useState(0)
     const [loading, setLoading] = useState(true)
     const [isSOSActive, setIsSOSActive] = useState(false)
+    const [user, setUser] = useState<any>(null)
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [activities, count, sosStatus] = await Promise.all([
+                const [activities, count, sosStatus, currentUser] = await Promise.all([
                     api.getActivities(),
                     api.getUnreadCount(),
-                    api.getSOSStatus()
+                    api.getSOSStatus(),
+                    api.getCurrentUser()
                 ])
                 setActivityLog(activities)
                 setUnreadCount(count)
                 setIsSOSActive(sosStatus)
+                setUser(currentUser)
             } catch (error) {
                 console.error("Failed to fetch dashboard data", error)
             } finally {
@@ -92,8 +95,13 @@ export default function ResidentDashboard() {
                         </Link>
 
                         {/* Avatar Placeholder */}
-                        <Link href="/profile" className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-[#1a237e] hover:bg-blue-200 transition-colors">
-                            <Users size={18} />
+                        {/* Avatar / Profile */}
+                        <Link href="/profile" className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-[#1a237e] hover:bg-blue-200 transition-colors overflow-hidden">
+                            {user?.avatar ? (
+                                <img src={user.avatar} alt="Profile" className="h-full w-full object-cover" />
+                            ) : (
+                                <span className="font-bold text-sm">{user?.name?.charAt(0) || <Users size={18} />}</span>
+                            )}
                         </Link>
                     </div>
                 </div>

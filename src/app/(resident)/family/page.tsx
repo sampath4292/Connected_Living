@@ -140,8 +140,8 @@ export default function FamilyPage() {
                 {members.map((member) => (
                     <div key={member.id} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center relative overflow-hidden group">
 
-                        {/* Action Buttons (Absolute Positioned) */}
-                        <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* Action Buttons (Always Visible) */}
+                        <div className="absolute top-3 right-3 flex gap-2">
                             <button onClick={() => handleOpenModal(member)} className="p-2 text-indigo-600 bg-white/90 rounded-full hover:bg-indigo-50 shadow-sm border border-indigo-100">
                                 <Edit2 size={16} />
                             </button>
@@ -257,7 +257,7 @@ export default function FamilyPage() {
                                 <div>
                                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Relation</label>
                                     <select
-                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm text-black ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                         value={formData.relation}
                                         onChange={(e) => setFormData({ ...formData, relation: e.target.value as any })}
                                     >
@@ -288,6 +288,8 @@ export default function FamilyPage() {
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                 />
                             </div>
+
+
 
                             <Button onClick={handleSave} className="w-full bg-[#1a237e] hover:bg-[#151b60] mt-4" disabled={loadingAction || !formData.name}>
                                 {loadingAction ? <Loader2 className="animate-spin" /> : (editingId ? "Save Changes" : "Add Member")}

@@ -119,8 +119,13 @@
 
 ### 5.2 Amenities Booking
 *   **GET** `/amenities`: List all (Pool, Gym) with status.
+    *   **Response**: List of `AmenityItem`, including `requiresApproval` flag.
 *   **POST** `/amenities/book`:
-    *   **Body:** `{ "amenityId": "pool", "date": "2024-02-10", "slot": "07:00 AM" }`
+    *   **Body:** `{ "amenityId": "pool", "date": "2024-02-10", "slots": ["07:00 AM"] }`
+    *   **Logic (Approval Workflow):**
+        *   If amenity `requiresApproval` is `true` (Club House, Conference), status = **Pending**.
+        *   Otherwise, status = **Confirmed**.
+    *   **Response**: `{ "success": true, "bookingId": "...", "status": "Pending" | "Confirmed" }`
 
 ### 5.3 Payments
 *   **GET** `/payments`: List pending and past payments.

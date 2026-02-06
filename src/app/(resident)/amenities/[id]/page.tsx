@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, use } from "react"
+import { useEffect, useState, use, useRef } from "react"
 import { ArrowLeft, Calendar, Clock, Info, CheckCircle2, Waves, AlertTriangle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -12,9 +12,10 @@ export default function AmenityBookingPage({ params }: { params: Promise<{ id: s
     const { id } = use(params)
     const [amenity, setAmenity] = useState<AmenityItem | null>(null)
     const [loading, setLoading] = useState(true)
-    const [date, setDate] = useState("")
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0])
     const [selectedSlots, setSelectedSlots] = useState<string[]>([])
     const [booking, setBooking] = useState(false)
+    const dateInputRef = useRef<HTMLInputElement>(null)
 
     const slots = ["06:00 AM", "07:00 AM", "08:00 AM", "05:00 PM", "06:00 PM", "07:00 PM"]
 
@@ -107,14 +108,40 @@ export default function AmenityBookingPage({ params }: { params: Promise<{ id: s
                         <div className="space-y-6">
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Select Date</label>
-                                <div className="relative">
+                                {amenity.requiresApproval && (
+                                    <div className="mb-4 bg-orange-50 border border-orange-100 rounded-xl p-3 flex items-start gap-3">
+                                        <Info className="text-orange-500 mt-0.5" size={16} />
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-bold text-orange-700">Approval Required</p>
+                                            <p className="text-xs text-orange-600 leading-relaxed">
+                                                This amenity requires admin approval. Your booking status will be "Pending" until confirmed.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                                <div
+                                    className="relative group cursor-pointer"
+                                    onClick={() => dateInputRef.current?.showPicker()}
+                                >
+                                    {/* Visible Input (Formatted) */}
                                     <input
-                                        type="date"
-                                        className="w-full h-12 pl-10 pr-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#1a237e] outline-none transition-colors text-sm font-medium text-gray-800"
-                                        onChange={(e) => setDate(e.target.value)}
-                                        defaultValue={new Date().toISOString().split('T')[0]}
+                                        type="text"
+                                        readOnly
+                                        value={date ? date.split('-').reverse().join('-') : ''}
+                                        placeholder="DD-MM-YYYY"
+                                        className="w-full h-12 pl-10 pr-4 rounded-xl bg-white border border-gray-200 focus:border-[#1a237e] outline-none transition-colors text-sm font-medium text-black pointer-events-none"
                                     />
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={18} />
+
+                                    {/* Hidden Native Picker */}
+                                    <input
+                                        ref={dateInputRef}
+                                        type="date"
+                                        className="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer"
+                                        onChange={(e) => setDate(e.target.value)}
+                                        value={date}
+                                        min={new Date().toISOString().split('T')[0]}
+                                    />
                                 </div>
                             </div>
 
@@ -157,7 +184,7 @@ export default function AmenityBookingPage({ params }: { params: Promise<{ id: s
                                         <span>Confirming...</span>
                                     ) : (
                                         <>
-                                            <span>Confirm Booking</span>
+                                            <span>{amenity.requiresApproval ? "Request Booking" : "Confirm Booking"}</span>
                                             <CheckCircle2 size={20} />
                                         </>
                                     )}

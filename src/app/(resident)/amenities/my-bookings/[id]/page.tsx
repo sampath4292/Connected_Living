@@ -74,8 +74,9 @@ export default function BookingDetailsPage({ params }: { params: Promise<{ id: s
                             <span className={cn(
                                 "px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide border",
                                 booking.status === "Confirmed" ? "bg-green-50 text-green-700 border-green-100" :
-                                    booking.status === "Completed" ? "bg-gray-50 text-gray-600 border-gray-100" :
-                                        "bg-red-50 text-red-700 border-red-100"
+                                    booking.status === "Pending" ? "bg-orange-50 text-orange-700 border-orange-100" :
+                                        booking.status === "Completed" ? "bg-gray-50 text-gray-600 border-gray-100" :
+                                            "bg-red-50 text-red-700 border-red-100"
                             )}>
                                 {booking.status}
                             </span>
@@ -141,13 +142,36 @@ export default function BookingDetailsPage({ params }: { params: Promise<{ id: s
                             </div>
                         )}
 
+                        {booking.status === "Pending" && (
+                            <div className="bg-orange-50 p-6 rounded-2xl border border-orange-100 flex flex-col items-center gap-4 text-center">
+                                <div className="h-16 w-16 bg-orange-100 rounded-full flex items-center justify-center text-orange-600">
+                                    <Clock size={32} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-900">Awaiting Approval</h3>
+                                    <p className="text-sm text-gray-500 mt-1">Your booking request is being reviewed by the admin.</p>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex gap-3 pt-4">
-                            <button className="flex-1 h-12 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold text-sm flex items-center justify-center gap-2 shadow-sm hover:bg-gray-50 transition-colors">
-                                <Share2 size={18} />
-                                <span>Share</span>
-                            </button>
-                            {booking.status === "Confirmed" && (
-                                <button className="flex-1 h-12 rounded-xl bg-red-50 border border-red-100 text-red-600 font-bold text-sm flex items-center justify-center gap-2 shadow-sm hover:bg-red-100 transition-colors">
+                            {/* Only show Share button if NOT Cancelled */}
+                            {booking.status !== "Cancelled" && (
+                                <button className="flex-1 h-12 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold text-sm flex items-center justify-center gap-2 shadow-sm hover:bg-gray-50 transition-colors">
+                                    <Share2 size={18} />
+                                    <span>Share</span>
+                                </button>
+                            )}
+                            {(booking.status === "Confirmed" || booking.status === "Pending") && (
+                                <button
+                                    onClick={async () => {
+                                        if (confirm("Are you sure you want to cancel this booking?")) {
+                                            await api.cancelBooking(booking.id)
+                                            setBooking(prev => prev ? { ...prev, status: "Cancelled" } : null)
+                                        }
+                                    }}
+                                    className="flex-1 h-12 rounded-xl bg-red-50 border border-red-100 text-red-600 font-bold text-sm flex items-center justify-center gap-2 shadow-sm hover:bg-red-100 transition-colors"
+                                >
                                     Cancel Booking
                                 </button>
                             )}

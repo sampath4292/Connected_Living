@@ -25,6 +25,7 @@ export default function EditSavedVisitorPage({ params }: { params: Promise<{ id:
     const [relation, setRelation] = useState("")
     const [avatar, setAvatar] = useState("")
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const inviteDateRef = useRef<HTMLInputElement>(null)
 
     // Instant Invite Logic
     const [inviteDate, setInviteDate] = useState("")
@@ -170,7 +171,7 @@ export default function EditSavedVisitorPage({ params }: { params: Promise<{ id:
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="w-full p-4 bg-gray-50 rounded-2xl font-bold text-gray-900 outline-none focus:ring-2 focus:ring-[#1a237e]/20 transition-all placeholder:font-normal"
+                                    className="w-full p-4 bg-white rounded-2xl font-bold text-black outline-none focus:ring-2 focus:ring-[#1a237e]/20 transition-all placeholder:font-normal"
                                     placeholder="Visitor Name"
                                 />
                             ) : (
@@ -187,7 +188,7 @@ export default function EditSavedVisitorPage({ params }: { params: Promise<{ id:
                                     type="text"
                                     value={relation}
                                     onChange={(e) => setRelation(e.target.value)}
-                                    className="w-full p-4 bg-gray-50 rounded-2xl font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-[#1a237e]/20 transition-all placeholder:font-normal"
+                                    className="w-full p-4 bg-white rounded-2xl font-semibold text-black outline-none focus:ring-2 focus:ring-[#1a237e]/20 transition-all placeholder:font-normal"
                                     placeholder="e.g. Friend, Brother"
                                 />
                             ) : (
@@ -205,7 +206,7 @@ export default function EditSavedVisitorPage({ params }: { params: Promise<{ id:
                                         type="tel"
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
-                                        className="w-full p-4 bg-gray-50 rounded-2xl font-medium text-gray-700 outline-none focus:ring-2 focus:ring-[#1a237e]/20 transition-all placeholder:font-normal"
+                                        className="w-full p-4 bg-white rounded-2xl font-medium text-black outline-none focus:ring-2 focus:ring-[#1a237e]/20 transition-all placeholder:font-normal"
                                         placeholder="+91..."
                                     />
                                 ) : (
@@ -221,7 +222,7 @@ export default function EditSavedVisitorPage({ params }: { params: Promise<{ id:
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full p-4 bg-gray-50 rounded-2xl font-medium text-gray-700 outline-none focus:ring-2 focus:ring-[#1a237e]/20 transition-all placeholder:font-normal"
+                                        className="w-full p-4 bg-white rounded-2xl font-medium text-black outline-none focus:ring-2 focus:ring-[#1a237e]/20 transition-all placeholder:font-normal"
                                         placeholder="Optional"
                                     />
                                 ) : (
@@ -252,12 +253,23 @@ export default function EditSavedVisitorPage({ params }: { params: Promise<{ id:
                         <div className="grid grid-cols-2 gap-4 mb-6">
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-gray-500 uppercase">Date</label>
-                                <input
-                                    type="date"
-                                    value={inviteDate}
-                                    onChange={(e) => setInviteDate(e.target.value)}
-                                    className="w-full p-3 bg-white rounded-xl border border-indigo-100 text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-indigo-200"
-                                />
+                                <div className="relative group" onClick={() => inviteDateRef.current?.showPicker()}>
+                                    <input
+                                        type="text"
+                                        readOnly
+                                        value={inviteDate ? inviteDate.split('-').reverse().join('-') : ''}
+                                        placeholder="DD-MM-YYYY"
+                                        className="w-full p-3 bg-white rounded-xl border border-indigo-100 text-sm font-semibold text-black outline-none focus:ring-2 focus:ring-indigo-200 pointer-events-none"
+                                    />
+                                    <input
+                                        type="date"
+                                        ref={inviteDateRef}
+                                        min={new Date().toISOString().split('T')[0]}
+                                        value={inviteDate}
+                                        onChange={(e) => setInviteDate(e.target.value)}
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    />
+                                </div>
                             </div>
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-gray-500 uppercase">Time</label>
@@ -265,7 +277,7 @@ export default function EditSavedVisitorPage({ params }: { params: Promise<{ id:
                                     type="time"
                                     value={inviteTime}
                                     onChange={(e) => setInviteTime(e.target.value)}
-                                    className="w-full p-3 bg-white rounded-xl border border-indigo-100 text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-indigo-200"
+                                    className="w-full p-3 bg-white rounded-xl border border-indigo-100 text-sm font-semibold text-black outline-none focus:ring-2 focus:ring-indigo-200"
                                 />
                             </div>
                         </div>

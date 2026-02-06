@@ -42,7 +42,7 @@ export default function AmenitiesPage() {
                         type="text"
                         suppressHydrationWarning
                         placeholder="Find an amenity..."
-                        className="w-full h-12 pl-10 pr-4 rounded-xl bg-gray-50 border-none focus:ring-2 focus:ring-[#1a237e]/20 text-sm outline-none transition-all"
+                        className="w-full h-12 pl-10 pr-4 rounded-xl bg-white border border-gray-200 focus:ring-2 focus:ring-[#1a237e]/20 text-sm text-black placeholder:text-gray-400 outline-none transition-all"
                     />
                 </div>
 

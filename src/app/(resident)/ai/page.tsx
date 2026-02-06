@@ -1,17 +1,19 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Mic, BrainCircuit, Send, Sparkles, StopCircle, CornerDownLeft } from "lucide-react"
+import { Mic, BrainCircuit, Send, Sparkles, StopCircle, CornerDownLeft, Image as ImageIcon, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function BrainAIPage() {
     const [isRecording, setIsRecording] = useState(false)
-    const [messages, setMessages] = useState<{ role: "ai" | "user", text: string }[]>([
+    const [messages, setMessages] = useState<{ role: "ai" | "user", text: string, image?: string }[]>([
         { role: "ai", text: "Hello! I'm Brain, your personal assistant. I can help you book amenities, raise tickets, or answer questions about your community. How can I help you today?" }
     ])
     const [input, setInput] = useState("")
+    const [selectedImage, setSelectedImage] = useState<string | null>(null)
     const [isThinking, setIsThinking] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -19,19 +21,33 @@ export default function BrainAIPage() {
 
     useEffect(() => {
         scrollToBottom()
-    }, [messages, isThinking])
+    }, [messages, isThinking, selectedImage])
+
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setSelectedImage(reader.result as string)
+            }
+            reader.readAsDataURL(file)
+        }
+    }
 
     const handleSend = async () => {
-        if (!input.trim()) return
+        if (!input.trim() && !selectedImage) return
 
         const userMsg = input
-        setMessages(prev => [...prev, { role: "user", text: userMsg }])
+        const userImage = selectedImage
+
+        setMessages(prev => [...prev, { role: "user", text: userMsg, image: userImage || undefined }])
         setInput("")
+        setSelectedImage(null)
         setIsThinking(true)
 
         // Mock AI Response
         setTimeout(() => {
-            setMessages(prev => [...prev, { role: "ai", text: "I understand you're asking about \"" + userMsg + "\". Once I'm fully connected to the backend, I'll be able to help with that!" }])
+            setMessages(prev => [...prev, { role: "ai", text: userImage ? "I see you uploaded an image! In a real version, I would analyze this image of \"" + (userMsg || "this object") + "\"." : "I understand you're asking about \"" + userMsg + "\". Once I'm fully connected to the backend, I'll be able to help with that!" }])
             setIsThinking(false)
         }, 1500)
     }
@@ -71,20 +87,33 @@ export default function BrainAIPage() {
                     <div
                         key={idx}
                         className={cn(
-                            "flex max-w-[85%] animate-in slide-in-from-bottom-2 duration-300",
-                            msg.role === "user" ? "ml-auto justify-end" : "mr-auto justify-start"
+                            "flex max-w-[85%] animate-in slide-in-from-bottom-2 duration-300 flex-col",
+                            msg.role === "user" ? "ml-auto items-end" : "mr-auto items-start"
                         )}
                     >
-                        <div
-                            className={cn(
-                                "p-4 rounded-2xl text-sm leading-relaxed shadow-sm",
-                                msg.role === "user"
-                                    ? "bg-[#1a237e] text-white rounded-br-none"
-                                    : "bg-gray-100 text-gray-800 rounded-bl-none"
-                            )}
-                        >
-                            {msg.text}
-                        </div>
+                        {/* Image Bubble */}
+                        {msg.image && (
+                            <div className={cn(
+                                "mb-2 p-1 rounded-2xl shadow-sm overflow-hidden",
+                                msg.role === "user" ? "bg-[#1a237e] rounded-br-none" : "bg-gray-100"
+                            )}>
+                                <img src={msg.image} alt="Uploaded" className="max-w-full h-auto rounded-xl max-h-60 object-cover" />
+                            </div>
+                        )}
+
+                        {/* Text Bubble - only show if there is text */}
+                        {msg.text && (
+                            <div
+                                className={cn(
+                                    "p-4 rounded-2xl text-sm leading-relaxed shadow-sm",
+                                    msg.role === "user"
+                                        ? "bg-[#1a237e] text-white rounded-tr-none rounded-br-xl"
+                                        : "bg-gray-100 text-gray-800 rounded-tl-none rounded-bl-xl"
+                                )}
+                            >
+                                {msg.text}
+                            </div>
+                        )}
                     </div>
                 ))}
 
@@ -101,27 +130,60 @@ export default function BrainAIPage() {
 
             {/* Input & Record Area */}
             <div className="relative z-20 p-4 bg-white/90 backdrop-blur-sm border-t border-gray-100 pb-8 lg:pb-4">
-                <div className="flex items-end gap-3 max-w-3xl mx-auto">
+                {/* Image Preview */}
+                {selectedImage && (
+                    <div className="absolute -top-24 left-4 right-4 bg-white p-3 rounded-xl shadow-lg border border-gray-100 animate-in slide-in-from-bottom-5 flex items-start gap-3 z-30">
+                        <div className="h-16 w-16 rounded-lg overflow-hidden bg-gray-100 relative group">
+                            <img src={selectedImage} className="h-full w-full object-cover" alt="Preview" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-xs font-bold text-gray-700">Image selected</p>
+                            <p className="text-[10px] text-gray-500">Ready to send</p>
+                        </div>
+                        <button
+                            onClick={() => setSelectedImage(null)}
+                            className="p-1 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"
+                        >
+                            <X size={16} />
+                        </button>
+                    </div>
+                )}
 
+                <div className="flex items-end gap-3 max-w-3xl mx-auto">
                     {/* Input Field */}
-                    <div className="flex-1 bg-gray-50 rounded-[1.5rem] border border-gray-100 focus-within:border-violet-300 focus-within:shadow-md transition-all p-1.5 flex items-center">
+                    <div className="flex-1 bg-white rounded-[1.5rem] border border-gray-200 focus-within:border-violet-300 focus-within:shadow-md transition-all p-1.5 flex items-center">
+                        {/* Image Upload Trigger */}
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="p-2 text-gray-400 hover:text-violet-600 transition-colors hover:bg-violet-50 rounded-full"
+                        >
+                            <ImageIcon size={20} />
+                        </button>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleImageSelect}
+                        />
+
                         <input
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                            placeholder="Ask me anything..."
-                            className="flex-1 bg-transparent px-4 py-2.5 text-sm focus:outline-none text-gray-800 placeholder:text-gray-400"
+                            placeholder={selectedImage ? "Add a caption..." : "Ask me anything..."}
+                            className="flex-1 bg-transparent px-2 py-2.5 text-sm focus:outline-none text-black placeholder:text-gray-400"
                         />
                         <button
                             onClick={handleSend}
-                            disabled={!input.trim()}
+                            disabled={!input.trim() && !selectedImage}
                             className={cn(
                                 "p-2 rounded-full transition-all",
-                                input.trim() ? "bg-[#1a237e] text-white hover:bg-indigo-800 shadow-md transform hover:scale-105" : "text-gray-300 cursor-not-allowed"
+                                (input.trim() || selectedImage) ? "bg-[#1a237e] text-white hover:bg-indigo-800 shadow-md transform hover:scale-105" : "text-gray-300 cursor-not-allowed"
                             )}
                         >
-                            <Send size={18} className={input.trim() ? "translate-x-0.5" : ""} />
+                            <Send size={18} className={(input.trim() || selectedImage) ? "translate-x-0.5" : ""} />
                         </button>
                     </div>
 

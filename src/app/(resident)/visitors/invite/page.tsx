@@ -1,8 +1,8 @@
 "use client"
 
-import { ArrowLeft, User, Truck, Car, CheckCircle, Share2, ShieldCheck, Mail, Phone, Calendar, Clock } from "lucide-react"
+import { ArrowLeft, User, Truck, Car, CheckCircle, Share2, ShieldCheck, Mail, Phone, Calendar, Clock, Camera } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { cn } from "@/lib/utils"
 // Assuming api is available
 import { api, InviteParams } from "@/lib/api"
@@ -23,6 +23,7 @@ export default function InviteVisitorPage() {
         name: "",
         phone: "",
         email: "",
+        photo: "",
         singleEntry: true,
 
         // Delivery
@@ -41,6 +42,17 @@ export default function InviteVisitorPage() {
             ...prev,
             [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
         }))
+    }
+
+    const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setFormData(prev => ({ ...prev, photo: reader.result as string }))
+            }
+            reader.readAsDataURL(file)
+        }
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -83,7 +95,8 @@ export default function InviteVisitorPage() {
                     time: formData.time,
                     singleEntry: formData.singleEntry,
                     phone: formData.phone,
-                    email: formData.email
+                    email: formData.email,
+                    avatar: formData.photo
                 }
             } else if (visitorType === 'delivery') {
                 payload = {
@@ -180,6 +193,32 @@ export default function InviteVisitorPage() {
                         {/* --- GUEST FORM --- */}
                         {visitorType === 'guest' && (
                             <>
+                                {/* Photo Upload */}
+                                <div className="flex justify-center mb-6">
+                                    <div className="relative group">
+                                        <div className={cn(
+                                            "w-24 h-24 rounded-full flex items-center justify-center border-2 border-dashed transition-all overflow-hidden",
+                                            formData.photo ? "border-indigo-500 bg-white" : "border-gray-300 bg-gray-50 group-hover:bg-gray-100"
+                                        )}>
+                                            {formData.photo ? (
+                                                <img src={formData.photo} alt="Guest" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Camera className="text-gray-400 group-hover:text-gray-500 transition-colors" size={32} />
+                                            )}
+                                        </div>
+                                        <div className="absolute bottom-0 right-0 bg-[#1a237e] text-white p-2 rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
+                                            <Camera size={14} />
+                                        </div>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handlePhotoUpload}
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        />
+                                    </div>
+                                    <p className="text-xs text-center text-gray-400 mt-2 absolute -bottom-6">Add Photo</p>
+                                </div>
+
                                 <Input label="Guest Name" name="name" value={formData.name} onChange={handleChange} required placeholder="Enter guest name" />
 
                                 <div className="space-y-2">
@@ -291,17 +330,60 @@ function TypeCard({ id, icon: Icon, label, active, onClick }: { id: string, icon
     )
 }
 
-function Input({ label, icon: Icon, className, ...props }: any) {
+function Input({ label, icon: Icon, type, value, onChange, className, ...props }: any) {
+    const dateRef = useRef<HTMLInputElement>(null)
+    // Custom Date Logic
+    if (type === 'date') {
+        // Format YYYY-MM-DD to DD-MM-YYYY for display
+        const displayValue = value ? value.split('-').reverse().join('-') : ''
+
+        return (
+            <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide px-1">{label}</label>
+                <div className="relative group" onClick={() => dateRef.current?.showPicker()}>
+                    {Icon && <Icon className="absolute left-3 top-3.5 text-gray-400 z-10" size={18} />}
+
+                    {/* Visible Input (Formatted) */}
+                    <input
+                        type="text"
+                        readOnly
+                        placeholder="DD-MM-YYYY"
+                        value={displayValue}
+                        className={cn(
+                            "w-full h-12 rounded-xl bg-white border-2 border-transparent focus:border-[#1a237e]/20 outline-none transition-all font-medium text-black placeholder:text-gray-400 pointer-events-none",
+                            Icon ? "pl-10 pr-4" : "px-4",
+                            className
+                        )}
+                    />
+
+                    {/* Hidden Native Picker Overlay */}
+                    <input
+                        {...props}
+                        type="date"
+                        ref={dateRef}
+                        min={new Date().toISOString().split('T')[0]}
+                        value={value}
+                        onChange={onChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                    />
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">{label}</label>
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide px-1">{label}</label>
             <div className="relative">
                 {Icon && <Icon className="absolute left-3 top-3.5 text-gray-400" size={18} />}
                 <input
                     {...props}
+                    type={type}
+                    value={value}
+                    onChange={onChange}
                     suppressHydrationWarning
                     className={cn(
-                        "w-full h-12 rounded-xl bg-gray-50 border-2 border-transparent focus:bg-white focus:border-[#1a237e]/20 outline-none transition-all font-medium text-gray-900 placeholder:text-gray-400",
+                        "w-full h-12 rounded-xl bg-white border-2 border-transparent focus:border-[#1a237e]/20 outline-none transition-all font-medium text-black placeholder:text-gray-400",
                         Icon ? "pl-10 pr-4" : "px-4",
                         className
                     )}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Calendar, Clock, MapPin, CheckCircle2, AlertTriangle, User, Phone } from "lucide-react"
+import { ArrowLeft, Calendar, Clock, MapPin, CheckCircle2, AlertTriangle, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { api, getIconForType, ServiceRequestItem, StaffItem } from "@/lib/api"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -145,9 +145,7 @@ export default function ServiceRequestDetailsPage({ params }: { params: Promise<
                                 <h4 className="font-bold text-gray-900">{staff.name}</h4>
                                 <p className="text-sm text-gray-500">{staff.role}</p>
                             </div>
-                            <a href={`tel:${staff.phone}`} className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center text-green-600 hover:bg-green-100 transition-colors">
-                                <Phone size={18} />
-                            </a>
+
                         </div>
 
                         {request.status === "Resolved" && (

@@ -46,6 +46,30 @@ export default function PaymentsPage() {
             .reduce((acc, curr) => acc + parseInt(curr.amount.replace(/[^0-9]/g, '')), 0)
     }
 
+    const handleDownload = (payment: PaymentItem) => {
+        // Create a fake invoice content
+        const invoiceContent = `
+        INVOICE RECEIPT
+        --------------------------
+        Payment ID: ${payment.id}
+        Date: ${payment.paymentDate}
+        Amount: ${payment.amount}
+        Service: ${payment.title}
+        Status: PAid
+        --------------------------
+        Thank you for your payment!
+        `
+        const blob = new Blob([invoiceContent], { type: 'text/plain' })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `invoice_${payment.id}.txt`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
+    }
+
     const PaymentCard = ({ payment }: { payment: PaymentItem }) => {
         const Icon = getPaymentIcon(payment.type)
         return (
@@ -76,11 +100,17 @@ export default function PaymentsPage() {
                     <div className="text-right">
                         <div className="font-bold text-lg text-[#1a237e]">{payment.amount}</div>
                         {activeTab === "pending" ? (
-                            <button className="mt-2 text-xs font-bold bg-[#1a237e] text-white px-4 py-1.5 rounded-lg hover:bg-blue-900 transition-colors">
+                            <button
+                                onClick={() => router.push(`/payments/pay/${payment.id}`)}
+                                className="mt-2 text-xs font-bold bg-[#1a237e] text-white px-4 py-1.5 rounded-lg hover:bg-blue-900 transition-colors"
+                            >
                                 Pay
                             </button>
                         ) : (
-                            <button className="mt-2 flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-[#1a237e] ml-auto transition-colors">
+                            <button
+                                onClick={() => handleDownload(payment)}
+                                className="mt-2 flex items-center gap-1 text-xs font-medium text-gray-400 hover:text-[#1a237e] ml-auto transition-colors"
+                            >
                                 <Download size={12} />
                                 Receipt
                             </button>
@@ -97,7 +127,7 @@ export default function PaymentsPage() {
             <div className="sticky top-0 bg-white z-10 border-b border-gray-100 lg:border-none p-4 lg:p-6 lg:bg-transparent">
                 <div className="flex items-center justify-between max-w-3xl mx-auto w-full">
                     <div className="flex items-center gap-3">
-                        <button onClick={() => router.back()} className="p-2 -ml-2 text-[#1a237e] hover:bg-gray-50 rounded-full lg:hidden">
+                        <button onClick={() => router.push("/dashboard")} className="p-2 -ml-2 text-[#1a237e] hover:bg-gray-50 rounded-full lg:hidden">
                             <ArrowLeft size={24} />
                         </button>
                         <h1 className="text-xl font-bold text-[#1a237e] lg:text-3xl">Payments</h1>
@@ -115,7 +145,10 @@ export default function PaymentsPage() {
                                 <p className="text-blue-200 text-sm font-medium mb-1">Total Outstanding</p>
                                 <h2 className="text-4xl font-bold">₹{getTotalDue().toLocaleString()}</h2>
                             </div>
-                            <button className="w-full md:w-auto px-8 bg-white text-[#1a237e] font-bold py-3.5 rounded-xl hover:bg-blue-50 transition-colors">
+                            <button
+                                onClick={() => router.push("/payments/pay-all")}
+                                className="w-full md:w-auto px-8 bg-white text-[#1a237e] font-bold py-3.5 rounded-xl hover:bg-blue-50 transition-colors"
+                            >
                                 Pay All
                             </button>
                         </div>

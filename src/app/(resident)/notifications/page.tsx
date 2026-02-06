@@ -31,6 +31,34 @@ export default function NotificationsPage() {
         }
     }
 
+    const handleNotificationClick = async (notification: NotificationItem) => {
+        if (!notification.read) {
+            handleMarkAsRead(notification.id)
+        }
+
+        const delay = !notification.read ? 100 : 0
+
+        setTimeout(() => {
+            switch (notification.type) {
+                case "payment":
+                    router.push("/payments")
+                    break
+                case "security":
+                    router.push("/visitors")
+                    break
+                case "event":
+                case "notice":
+                case "offer":
+                case "meeting":
+                    router.push("/community")
+                    break
+                default:
+                    // Default redirect to dashboard if no specific match
+                    break
+            }
+        }, delay)
+    }
+
     const handleMarkAsRead = async (id: number) => {
         if (loadingAction) return
 
@@ -143,7 +171,7 @@ export default function NotificationsPage() {
                     notifications.map((notification) => (
                         <div
                             key={notification.id}
-                            onClick={() => !notification.read && handleMarkAsRead(notification.id)}
+                            onClick={() => handleNotificationClick(notification)}
                             className={cn(
                                 "relative p-4 rounded-2xl border transition-all duration-200 flex gap-4 overflow-hidden cursor-pointer",
                                 notification.read

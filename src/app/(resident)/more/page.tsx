@@ -3,17 +3,31 @@
 import { useState } from "react"
 import {
     Moon, Sun, Monitor, Users, Car, ChevronRight,
-    Bell, Shield, Phone, FileText, ChevronLeft, Settings
+    Bell, Shield, Phone, FileText, ChevronLeft, Settings, AlertCircle
 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
 
 export default function MorePage() {
+    const router = useRouter()
     // View State
     const [currentView, setCurrentView] = useState<"main" | "appearance">("main")
 
     // Theme State
     const [theme, setTheme] = useState<"light" | "dark" | "system">("light")
+    const [showSOSConfirm, setShowSOSConfirm] = useState(false)
+
+    const handleSOS = async () => {
+        try {
+            await api.triggerSOS()
+            setShowSOSConfirm(false)
+            // Optionally redirect or show success
+        } catch (error) {
+            console.error("Failed to trigger SOS")
+        }
+    }
 
     // Notification States (Default all true)
     const [notifications, setNotifications] = useState({
@@ -187,6 +201,27 @@ export default function MorePage() {
                                     </button>
                                 </div>
                             </div>
+
+                            {/* SOS Button inside Emergency Section */}
+                            <div className="pt-2">
+                                <button
+                                    onClick={() => setShowSOSConfirm(true)}
+                                    className="w-full bg-red-50 hover:bg-red-100 border-2 border-red-100 rounded-2xl p-4 flex items-center justify-between group transition-all"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-xl bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform animate-pulse">
+                                            <AlertCircle size={24} />
+                                        </div>
+                                        <div className="text-left">
+                                            <h3 className="text-lg font-bold text-red-700">SOS / Emergency</h3>
+                                            <p className="text-sm text-red-600/80">Trigger immediate security alert</p>
+                                        </div>
+                                    </div>
+                                    <div className="h-10 w-10 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg shadow-red-200">
+                                        <span className="font-bold text-lg">!</span>
+                                    </div>
+                                </button>
+                            </div>
                         </section>
 
                         {/* --- LEGAL DOCS --- */}
@@ -300,6 +335,36 @@ export default function MorePage() {
                     </div>
                 )}
             </div>
+            {/* SOS Confirmation Modal */}
+            {showSOSConfirm && (
+                <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl p-6 w-full max-w-xs text-center space-y-4 animate-in zoom-in-95 duration-200">
+                        <div className="h-20 w-20 bg-red-100 rounded-full flex items-center justify-center mx-auto text-red-600 mb-2">
+                            <AlertCircle size={40} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-gray-900">Are you sure?</h3>
+                            <p className="text-sm text-gray-500 mt-2">
+                                This will immediately alert security with your location and details.
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 pt-2">
+                            <button
+                                onClick={() => setShowSOSConfirm(false)}
+                                className="w-full py-3 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold text-gray-700 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSOS}
+                                className="w-full py-3 bg-red-600 hover:bg-red-700 rounded-xl font-bold text-white shadow-lg shadow-red-200 transition-all active:scale-95"
+                            >
+                                YES, ALERT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

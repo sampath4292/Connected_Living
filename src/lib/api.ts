@@ -68,6 +68,7 @@ export interface AmenityItem {
     iconType: "pool" | "gym" | "clubhouse" | "conference" | "tennis"
     imageGradient: string
     rules?: string[]
+    requiresApproval?: boolean
 }
 
 export interface ServiceRequestItem {
@@ -165,10 +166,12 @@ export interface CommunityEventItem {
     organizer?: string
     rsvpStatus?: "going" | "not_going" | "pending"
     price?: string
+    status?: "pending" | "approved" | "rejected"
+    creatorId?: string
 }
 
 export type InviteParams =
-    | { type: "Guest"; name: string; phone?: string; email?: string; date: string; time: string; singleEntry: boolean }
+    | { type: "Guest"; name: string; phone?: string; email?: string; date: string; time: string; singleEntry: boolean; avatar?: string }
     | { type: "Delivery"; vendor: string; name?: string; phone?: string; date: string; time?: string }
     | { type: "Cab"; driverName: string; vehicleNo: string; service: string; date: string; time?: string; model?: string }
 
@@ -222,7 +225,7 @@ export interface BookingItem {
     amenityName: string
     date: string
     slots: string[]
-    status: "Confirmed" | "Cancelled" | "Completed"
+    status: "Confirmed" | "Cancelled" | "Completed" | "Pending" | "Rejected"
     timestamp: number // for sorting
 }
 
@@ -333,8 +336,8 @@ const MOCK_VISITORS: VisitorItem[] = [
 const MOCK_AMENITIES: AmenityItem[] = [
     { id: "pool", name: "Swimming Pool", description: "Olympic sized pool with temperature control.", status: "Open", timing: "6 AM - 10 PM", iconType: "pool", imageGradient: "linear-gradient(to bottom right, #3b82f6, #1d4ed8)", rules: ["Shower before entering"] },
     { id: "gym", name: "Fitness Center", description: "Fully equipped gym with cardio and weights.", status: "Open", timing: "5 AM - 11 PM", iconType: "gym", imageGradient: "linear-gradient(to bottom right, #f97316, #ea580c)", rules: ["Carry a towel"] },
-    { id: "clubhouse", name: "Club House", description: "For parties, events and indoor games.", status: "Booked Today", timing: "9 AM - 11 PM", iconType: "clubhouse", imageGradient: "linear-gradient(to bottom right, #9333ea, #7e22ce)", rules: ["No loud music after 10 PM"] },
-    { id: "conference", name: "Conf. Room", description: "Quiet space for meetings.", status: "Open", timing: "24/7", iconType: "conference", imageGradient: "linear-gradient(to bottom right, #4b5563, #374151)", rules: ["Keep noise to minimum"] },
+    { id: "clubhouse", name: "Club House", description: "For parties, events and indoor games.", status: "Booked Today", timing: "9 AM - 11 PM", iconType: "clubhouse", imageGradient: "linear-gradient(to bottom right, #9333ea, #7e22ce)", rules: ["No loud music after 10 PM"], requiresApproval: true },
+    { id: "conference", name: "Conf. Room", description: "Quiet space for meetings.", status: "Open", timing: "24/7", iconType: "conference", imageGradient: "linear-gradient(to bottom right, #4b5563, #374151)", rules: ["Keep noise to minimum"], requiresApproval: true },
     { id: "tennis", name: "Tennis Court", description: "Pro hard court with floodlights.", status: "Open", timing: "6 AM - 9 PM", iconType: "tennis", imageGradient: "linear-gradient(to bottom right, #10b981, #059669)", rules: ["Non-marking shoes"] },
 ]
 
@@ -353,11 +356,11 @@ const MOCK_VEHICLES: VehicleItem[] = [
 ]
 
 const MOCK_COMMUNITY_MESSAGES: CommunityMessageItem[] = [
-    { id: 1, sender: "Ramesh (Security)", role: "security", text: "Notice: Water tanker has arrived at Gate 1.", time: "10:30 AM", avatar: "R", color: "bg-green-100 text-green-700" },
-    { id: 2, sender: "Priya (B-402)", role: "resident", text: "Great, thanks Ramesh! Is the lift working now?", time: "10:32 AM", avatar: "P", color: "bg-pink-100 text-pink-700" },
-    { id: 3, sender: "Rahul (A-101)", role: "resident", text: "Yes, I just used it. It's working fine.", time: "10:35 AM", avatar: "R", color: "bg-blue-100 text-blue-700" },
+    { id: 1, sender: "Security - Gate 1", role: "security", text: "Notice: Water tanker has arrived at Gate 1.", time: "10:30 AM", avatar: "S", color: "bg-green-100 text-green-700" },
+    { id: 2, sender: "402 - Block B", role: "resident", text: "Great, thanks Ramesh! Is the lift working now?", time: "10:32 AM", avatar: "P", color: "bg-pink-100 text-pink-700" },
+    { id: 3, sender: "101 - Block A", role: "resident", text: "Yes, I just used it. It's working fine.", time: "10:35 AM", avatar: "R", color: "bg-blue-100 text-blue-700" },
     { id: 4, sender: "Admin", role: "admin", text: "Please remember to separate dry and wet waste before disposal.", time: "11:00 AM", avatar: "A", color: "bg-gray-800 text-white" },
-    { id: 5, sender: "Simran (C-505)", role: "resident", text: "Does anyone have a contact for a good carpenter?", time: "11:15 AM", avatar: "S", color: "bg-orange-100 text-orange-700" },
+    { id: 5, sender: "505 - Block C", role: "resident", text: "Does anyone have a contact for a good carpenter?", time: "11:15 AM", avatar: "S", color: "bg-orange-100 text-orange-700" },
 ]
 
 const MOCK_COMMUNITY_EVENTS: CommunityEventItem[] = [
@@ -497,6 +500,11 @@ export const api = {
         return newNotif
     },
 
+    // USER Methods
+    getCurrentUser: async (): Promise<UserItem | undefined> => {
+        return new Promise(resolve => setTimeout(() => resolve(MOCK_USERS[0]), 300))
+    },
+
     getVisitors: async (): Promise<VisitorItem[]> => MOCK_VISITORS,
     getAmenities: async (): Promise<AmenityItem[]> => MOCK_AMENITIES,
     getAmenityById: async (id: string) => MOCK_AMENITIES.find(a => a.id === id),
@@ -519,11 +527,20 @@ export const api = {
             amenityName: amenity.name,
             date,
             slots,
-            status: "Confirmed",
+            status: amenity.requiresApproval ? "Pending" : "Confirmed",
             timestamp: Date.now()
         }
         MOCK_BOOKINGS.unshift(newBooking)
         return new Promise(resolve => setTimeout(() => resolve(true), 800))
+    },
+
+    cancelBooking: async (id: string): Promise<boolean> => {
+        const booking = MOCK_BOOKINGS.find(b => b.id === id)
+        if (booking) {
+            booking.status = "Cancelled"
+            return new Promise(resolve => setTimeout(() => resolve(true), 600))
+        }
+        return false
     },
 
     getServiceRequests: async (): Promise<ServiceRequestItem[]> => MOCK_SERVICE_REQUESTS,
@@ -589,7 +606,28 @@ export const api = {
     getStaffById: async (id: string): Promise<StaffItem | undefined> => {
         return new Promise(resolve => setTimeout(() => resolve(MOCK_STAFF.find(s => s.id === id)), 400))
     },
+    // PAYMENTS Methods
     getPayments: async (): Promise<PaymentItem[]> => MOCK_PAYMENTS,
+    getPaymentById: async (id: string): Promise<PaymentItem | undefined> => {
+        return new Promise(resolve => setTimeout(() => resolve(MOCK_PAYMENTS.find(p => p.id === id)), 400))
+    },
+    processPayment: async (id: string): Promise<boolean> => {
+        const payment = MOCK_PAYMENTS.find(p => p.id === id)
+        if (payment) {
+            payment.status = "Paid"
+            payment.paymentDate = new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+            return new Promise(resolve => setTimeout(() => resolve(true), 1500))
+        }
+        return false
+    },
+    processAllPayments: async (): Promise<boolean> => {
+        const pending = MOCK_PAYMENTS.filter(p => p.status === "Pending" || p.status === "Overdue")
+        pending.forEach(p => {
+            p.status = "Paid"
+            p.paymentDate = new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+        })
+        return new Promise(resolve => setTimeout(() => resolve(true), 2000))
+    },
 
     // SECURITY Methods
     getGateEntries: async (): Promise<VisitorItem[]> => MOCK_VISITORS,
@@ -622,7 +660,12 @@ export const api = {
                 type: data.type,
                 code: code,
                 time: "time" in data && data.time ? `${data.date}, ${data.time}` : `${data.date}`,
-                status: "Expected"
+                type: data.type,
+                code: code,
+                time: "time" in data && data.time ? `${data.date}, ${data.time}` : `${data.date}`,
+                status: "Expected",
+                // @ts-ignore
+                avatar: "avatar" in data ? data.avatar : undefined
             }
             MOCK_VISITORS.unshift(newVisitor)
 
@@ -636,6 +679,7 @@ export const api = {
                     name: visitorName,
                     type: data.type,
                     relation: data.type === 'Guest' ? 'Friend' : data.type, // Default relation
+                    avatar: data.avatar
                 })
             }
 
@@ -667,7 +711,7 @@ export const api = {
     sendCommunityMessage: async (text: string): Promise<CommunityMessageItem> => {
         const newMsg: CommunityMessageItem = {
             id: Date.now(),
-            sender: "You (A-204)",
+            sender: "101 - Block A",
             role: "me",
             text,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -688,8 +732,24 @@ export const api = {
             return true
         }
         return false
+    },
+    createCommunityEvent: async (eventData: Omit<CommunityEventItem, "id" | "participants" | "imageGradient" | "status">): Promise<boolean> => {
+        const newEvent: CommunityEventItem = {
+            id: Date.now(),
+            ...eventData,
+            participants: 0,
+            imageGradient: "from-blue-400 to-indigo-500", // Default gradient
+            status: "pending", // Default to pending approval
+            creatorId: "U-123" // Mock current user ID
+        }
+        // In a real app, this would go to a pending queue. For mock, we'll push it but it won't be shown unless we filter/approve.
+        // For this demo, let's assume we push it but maybe filtering handles visibility.
+        // We will push it to MOCK events for now.
+        MOCK_COMMUNITY_EVENTS.push(newEvent)
+        return true
     }
 }
+
 
 
 // --- Helper to map string types to Icons ---

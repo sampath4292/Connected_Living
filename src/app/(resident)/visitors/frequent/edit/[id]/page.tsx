@@ -16,6 +16,7 @@ export default function EditFrequentVisitorPage({ params }: { params: Promise<{ 
     const [saving, setSaving] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const dateRef = useRef<HTMLInputElement>(null)
 
     // Edit Fields
     const [name, setName] = useState("")
@@ -143,7 +144,7 @@ export default function EditFrequentVisitorPage({ params }: { params: Promise<{ 
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="w-full text-center text-xl font-bold text-gray-900 bg-gray-50 border border-transparent rounded-lg p-1 focus:bg-white focus:border-indigo-200 outline-none transition-all"
+                                className="w-full text-center text-xl font-bold text-black bg-white border border-transparent rounded-lg p-1 focus:border-indigo-200 outline-none transition-all"
                                 placeholder="Name"
                             />
                         ) : (
@@ -182,13 +183,25 @@ export default function EditFrequentVisitorPage({ params }: { params: Promise<{ 
                     <p className="text-sm text-gray-500 mb-4">
                         Extend or shorten the validity of this entry pass.
                     </p>
-                    <input
-                        type="date"
-                        value={validUntil}
-                        disabled={!isEditing}
-                        onChange={(e) => setValidUntil(e.target.value)}
-                        className={`w-full bg-gray-50 p-4 rounded-xl text-base font-bold text-gray-800 outline-none border border-gray-200 transition-all ${isEditing ? 'focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10' : 'opacity-60 grayscale'}`}
-                    />
+                    <div className="relative group" onClick={() => isEditing && dateRef.current?.showPicker()}>
+                        <input
+                            type="text"
+                            readOnly
+                            value={validUntil ? validUntil.split('-').reverse().join('-') : ''}
+                            placeholder="DD-MM-YYYY"
+                            disabled={!isEditing}
+                            className={`w-full bg-white p-4 rounded-xl text-base font-bold text-black outline-none border border-gray-200 transition-all ${isEditing ? 'focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10' : 'opacity-60 grayscale'} pointer-events-none`}
+                        />
+                        <input
+                            type="date"
+                            ref={dateRef}
+                            min={new Date().toISOString().split('T')[0]}
+                            value={validUntil}
+                            disabled={!isEditing}
+                            onChange={(e) => setValidUntil(e.target.value)}
+                            className={`absolute inset-0 w-full h-full opacity-0 ${isEditing ? 'cursor-pointer' : ''}`}
+                        />
+                    </div>
                 </div>
 
                 {/* 3. Time Slot Setting */}

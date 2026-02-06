@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { ArrowLeft, Upload, Camera, Zap, Waves, Hammer, Package, MessageSquare, CheckCircle2, Mic, Users, X, AlertCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -24,6 +24,7 @@ export default function NewServiceRequestPage() {
     const [photoPreview, setPhotoPreview] = useState<string | null>(null)
 
     const [date, setDate] = useState("")
+    const dateRef = useRef<HTMLInputElement>(null)
     const [showSOSConfirm, setShowSOSConfirm] = useState(false)
 
     const handleSOS = async () => {
@@ -163,7 +164,7 @@ export default function NewServiceRequestPage() {
                                 <label className="text-sm font-bold text-gray-700">Description <span className="text-red-500">*</span></label>
                                 <div className="relative">
                                     <textarea
-                                        className="w-full h-32 p-4 rounded-xl bg-white border border-gray-200 focus:ring-2 focus:ring-[#1a237e]/20 text-sm text-gray-900 placeholder:text-gray-400 outline-none resize-none"
+                                        className="w-full h-32 p-4 rounded-xl bg-white border border-gray-200 focus:ring-2 focus:ring-[#1a237e]/20 text-sm text-black placeholder:text-gray-400 outline-none resize-none"
                                         placeholder={isOthers ? "Describe what needs fixing... (e.g. 'Crack in living room wall')" : "Describe the issue..."}
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
@@ -213,12 +214,23 @@ export default function NewServiceRequestPage() {
                             {!isOthers && (
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-gray-700">Preferred Date <span className="text-red-500">*</span></label>
-                                    <input
-                                        type="date"
-                                        className="w-full h-12 px-4 rounded-xl bg-white border border-gray-200 focus:ring-2 focus:ring-[#1a237e]/20 text-sm text-gray-900 outline-none"
-                                        value={date}
-                                        onChange={(e) => setDate(e.target.value)}
-                                    />
+                                    <div className="relative group" onClick={() => dateRef.current?.showPicker()}>
+                                        <input
+                                            type="text"
+                                            readOnly
+                                            value={date ? date.split('-').reverse().join('-') : ''}
+                                            placeholder="DD-MM-YYYY"
+                                            className="w-full h-12 px-4 rounded-xl bg-white border border-gray-200 focus:ring-2 focus:ring-[#1a237e]/20 text-sm text-black outline-none pointer-events-none"
+                                        />
+                                        <input
+                                            type="date"
+                                            ref={dateRef}
+                                            min={new Date().toISOString().split('T')[0]}
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            value={date}
+                                            onChange={(e) => setDate(e.target.value)}
+                                        />
+                                    </div>
                                 </div>
                             )}
 
