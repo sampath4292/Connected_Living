@@ -269,7 +269,8 @@ const MOCK_SERVICE_REQUESTS: ServiceRequestItem[] = [
         urgency: "High",
         assignedTo: "S-002",
         photo: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-        preferredDate: "2024-02-12"
+        preferredDate: "2024-02-12",
+        preferredTime: "11:00 AM"
     },
     {
         id: "SR-0998",
@@ -281,7 +282,8 @@ const MOCK_SERVICE_REQUESTS: ServiceRequestItem[] = [
         date: "Jan 28, 2024",
         urgency: "Medium",
         assignedTo: "S-001",
-        preferredDate: "2024-01-29"
+        preferredDate: "2024-01-29",
+        preferredTime: "02:30 PM"
     },
     {
         id: "SR-0992",
@@ -602,6 +604,14 @@ export const api = {
         }
         return new Promise(resolve => setTimeout(() => resolve(false), 500))
     },
+    deleteFrequentVisitor: async (id: string): Promise<boolean> => {
+        const index = MOCK_FREQUENT_VISITORS.findIndex(v => v.id === id)
+        if (index !== -1) {
+            MOCK_FREQUENT_VISITORS.splice(index, 1)
+            return new Promise(resolve => setTimeout(() => resolve(true), 800))
+        }
+        return false
+    },
 
     getStaffById: async (id: string): Promise<StaffItem | undefined> => {
         return new Promise(resolve => setTimeout(() => resolve(MOCK_STAFF.find(s => s.id === id)), 400))
@@ -710,7 +720,7 @@ export const api = {
     getCommunityMessages: async (): Promise<CommunityMessageItem[]> => MOCK_COMMUNITY_MESSAGES,
     sendCommunityMessage: async (text: string): Promise<CommunityMessageItem> => {
         const newMsg: CommunityMessageItem = {
-            id: Date.now(),
+            id: Date.now() + Math.floor(Math.random() * 1000),
             sender: "101 - Block A",
             role: "me",
             text,
@@ -735,7 +745,7 @@ export const api = {
     },
     createCommunityEvent: async (eventData: Omit<CommunityEventItem, "id" | "participants" | "imageGradient" | "status">): Promise<boolean> => {
         const newEvent: CommunityEventItem = {
-            id: Date.now(),
+            id: Date.now() + Math.random(),
             ...eventData,
             participants: 0,
             imageGradient: "from-blue-400 to-indigo-500", // Default gradient

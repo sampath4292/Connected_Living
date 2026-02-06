@@ -36,21 +36,21 @@ export default function CommunityChatPage() {
     }
 
     return (
-        <div className="fixed inset-0 flex flex-col bg-[#f8f9fa] z-40">
+        <div className="fixed inset-0 flex flex-col bg-background z-40 lg:z-0 lg:relative lg:h-[calc(100vh-2rem)]">
             {/* Header */}
-            <div className="bg-white px-6 py-6 rounded-b-[2rem] border-b border-gray-100 flex items-center justify-between shadow-sm z-20 flex-shrink-0">
+            <div className="bg-card px-6 py-4 flex items-center justify-between shadow-sm z-20 flex-shrink-0 border-b border-border">
                 <div className="flex items-center gap-1">
                     <button
                         onClick={() => router.push("/community")}
-                        className="p-2 -ml-2 mr-2 hover:bg-gray-50 rounded-full text-gray-700 transition-colors"
+                        className="p-2 -ml-2 mr-2 hover:bg-accent rounded-full text-foreground transition-colors"
                     >
                         <ChevronLeft className="h-6 w-6" />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-extrabold text-[#1a237e] tracking-tight">General Chat</h1>
+                        <h1 className="text-2xl font-extrabold text-primary tracking-tight">General Chat</h1>
                         <div className="flex items-center gap-2 mt-0.5">
                             <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-                            <p className="text-xs text-gray-500 font-medium">Building A • 45 Online</p>
+                            <p className="text-xs text-muted-foreground font-medium">Building A • 45 Online</p>
                         </div>
                     </div>
                 </div>
@@ -59,7 +59,7 @@ export default function CommunityChatPage() {
             {/* Messages List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-48 lg:pb-24">
                 <div className="flex justify-center">
-                    <span className="text-[10px] bg-gray-200 text-gray-500 px-3 py-1 rounded-full font-medium">Today</span>
+                    <span className="text-[10px] bg-accent text-muted-foreground px-3 py-1 rounded-full font-medium">Today</span>
                 </div>
 
                 {messages.map((msg) => {
@@ -71,14 +71,14 @@ export default function CommunityChatPage() {
                             </div>
                             <div className={cn("flex flex-col", isMe ? "items-end" : "items-start")}>
                                 <div className="flex items-baseline gap-2 mb-1 px-1">
-                                    <span className="text-[10px] font-bold text-gray-600">{msg.sender}</span>
-                                    <span className="text-[10px] text-gray-400">{msg.time}</span>
+                                    <span className="text-[10px] font-bold text-muted-foreground">{msg.sender}</span>
+                                    <span className="text-[10px] text-muted-foreground/60">{msg.time}</span>
                                 </div>
                                 <div className={cn(
                                     "px-4 py-3 rounded-2xl text-sm shadow-sm",
                                     isMe
-                                        ? "bg-[#1a237e] text-white rounded-tr-sm"
-                                        : "bg-white text-gray-800 border border-gray-100 rounded-tl-sm"
+                                        ? "bg-primary text-primary-foreground rounded-tr-sm"
+                                        : "bg-card text-foreground border border-border rounded-tl-sm"
                                 )}>
                                     {msg.text}
                                 </div>
@@ -90,31 +90,31 @@ export default function CommunityChatPage() {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white border-t border-gray-100 flex items-center gap-3 absolute bottom-20 lg:bottom-0 left-0 right-0 z-30">
-                <button className="text-gray-400 hover:text-[#1a237e] transition-colors p-2 rounded-full hover:bg-gray-50">
+            <div className="p-4 bg-card border-t border-border flex items-center gap-3 absolute bottom-0 lg:bottom-0 left-0 right-0 z-30 pb-[calc(1rem+env(safe-area-inset-bottom)+5rem)] lg:pb-4">
+                <button className="text-muted-foreground hover:text-primary transition-colors p-2 rounded-full hover:bg-accent flex-shrink-0">
                     <Plus size={20} />
                 </button>
-                <div className="flex-1 bg-white rounded-2xl flex items-center px-4 border border-gray-200 focus-within:border-[#1a237e]/30 transition-all">
+                <div className="flex-1 bg-muted/50 rounded-xl flex items-center px-4 border border-border focus-within:border-primary/30 transition-all">
                     <input
                         type="text"
                         value={msgInput}
                         onChange={(e) => setMsgInput(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleSend()}
                         placeholder="Type a message..."
-                        className="flex-1 bg-transparent py-3 text-sm focus:outline-none text-black placeholder:text-gray-400"
+                        className="flex-1 bg-transparent py-2.5 text-sm focus:outline-none text-foreground placeholder:text-muted-foreground"
                     />
-                    <button className="text-gray-400 hover:text-[#1a237e]">
+                    <button className="text-muted-foreground hover:text-primary flex-shrink-0 ml-2">
                         <Smile size={18} />
                     </button>
                 </div>
                 <button
                     onClick={handleSend}
                     className={cn(
-                        "h-11 w-11 rounded-full flex items-center justify-center shadow-lg transition-all transform active:scale-95",
-                        msgInput.trim() ? "bg-[#1a237e] text-white hover:bg-indigo-800" : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        "h-10 w-10 rounded-xl flex items-center justify-center shadow-lg transition-all transform active:scale-95 flex-shrink-0",
+                        msgInput.trim() ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-muted text-muted-foreground cursor-not-allowed"
                     )}
                 >
-                    <Send size={18} className={msgInput.trim() ? "ml-1" : ""} />
+                    <Send size={18} className={msgInput.trim() ? "ml-0.5" : ""} />
                 </button>
             </div>
         </div>

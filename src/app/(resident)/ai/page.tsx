@@ -65,19 +65,19 @@ export default function BrainAIPage() {
     }
 
     return (
-        <div className="fixed inset-0 bottom-20 z-0 lg:static lg:z-auto lg:h-[calc(100vh-2rem)] flex flex-col bg-white overflow-hidden">
+        <div className="fixed inset-0 bottom-20 z-0 lg:static lg:z-auto lg:h-[calc(100vh-2rem)] flex flex-col bg-background overflow-hidden">
             {/* Ambient Background with Brain Watermark */}
-            <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none opacity-[0.03]">
-                <BrainCircuit size={600} className="text-[#1a237e]" />
+            <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none opacity-[0.03] dark:opacity-[0.05]">
+                <BrainCircuit size={600} className="text-primary" />
             </div>
 
             {/* Header */}
-            <div className="relative z-10 p-4 flex items-center justify-center border-b border-gray-50 bg-white/80 backdrop-blur-md">
+            <div className="relative z-10 p-4 flex items-center justify-center border-b border-border bg-card/80 backdrop-blur-md">
                 <div className="flex items-center gap-2">
                     <div className="h-8 w-8 bg-gradient-to-tr from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg">
                         <BrainCircuit size={18} />
                     </div>
-                    <span className="font-bold text-gray-800 text-lg tracking-tight">Brain AI</span>
+                    <span className="font-bold text-foreground text-lg tracking-tight">Brain AI</span>
                 </div>
             </div>
 
@@ -95,7 +95,7 @@ export default function BrainAIPage() {
                         {msg.image && (
                             <div className={cn(
                                 "mb-2 p-1 rounded-2xl shadow-sm overflow-hidden",
-                                msg.role === "user" ? "bg-[#1a237e] rounded-br-none" : "bg-gray-100"
+                                msg.role === "user" ? "bg-primary rounded-br-none" : "bg-muted"
                             )}>
                                 <img src={msg.image} alt="Uploaded" className="max-w-full h-auto rounded-xl max-h-60 object-cover" />
                             </div>
@@ -107,8 +107,8 @@ export default function BrainAIPage() {
                                 className={cn(
                                     "p-4 rounded-2xl text-sm leading-relaxed shadow-sm",
                                     msg.role === "user"
-                                        ? "bg-[#1a237e] text-white rounded-tr-none rounded-br-xl"
-                                        : "bg-gray-100 text-gray-800 rounded-tl-none rounded-bl-xl"
+                                        ? "bg-primary text-white rounded-tr-none rounded-br-xl"
+                                        : "bg-muted text-foreground rounded-tl-none rounded-bl-xl"
                                 )}
                             >
                                 {msg.text}
@@ -119,9 +119,9 @@ export default function BrainAIPage() {
 
                 {isThinking && (
                     <div className="flex justify-start animate-in slide-in-from-bottom-2 duration-300">
-                        <div className="bg-gray-100 px-4 py-3 rounded-2xl rounded-bl-none flex items-center gap-2">
-                            <Sparkles size={16} className="text-violet-500 animate-pulse" />
-                            <span className="text-xs font-medium text-gray-500">Brain is thinking...</span>
+                        <div className="bg-muted px-4 py-3 rounded-2xl rounded-bl-none flex items-center gap-2">
+                            <BrainCircuit size={16} className="text-violet-500 animate-pulse" />
+                            <span className="text-xs font-medium text-muted-foreground">Brain is thinking...</span>
                         </div>
                     </div>
                 )}
@@ -129,20 +129,20 @@ export default function BrainAIPage() {
             </div>
 
             {/* Input & Record Area */}
-            <div className="relative z-20 p-4 bg-white/90 backdrop-blur-sm border-t border-gray-100 pb-8 lg:pb-4">
+            <div className="relative z-20 p-4 bg-background/90 backdrop-blur-sm border-t border-border pb-8 lg:pb-4">
                 {/* Image Preview */}
                 {selectedImage && (
-                    <div className="absolute -top-24 left-4 right-4 bg-white p-3 rounded-xl shadow-lg border border-gray-100 animate-in slide-in-from-bottom-5 flex items-start gap-3 z-30">
-                        <div className="h-16 w-16 rounded-lg overflow-hidden bg-gray-100 relative group">
+                    <div className="absolute -top-24 left-4 right-4 bg-card p-3 rounded-xl shadow-lg border border-border animate-in slide-in-from-bottom-5 flex items-start gap-3 z-30">
+                        <div className="h-16 w-16 rounded-lg overflow-hidden bg-muted relative group">
                             <img src={selectedImage} className="h-full w-full object-cover" alt="Preview" />
                         </div>
                         <div className="flex-1">
-                            <p className="text-xs font-bold text-gray-700">Image selected</p>
-                            <p className="text-[10px] text-gray-500">Ready to send</p>
+                            <p className="text-xs font-bold text-foreground">Image selected</p>
+                            <p className="text-[10px] text-muted-foreground">Ready to send</p>
                         </div>
                         <button
                             onClick={() => setSelectedImage(null)}
-                            className="p-1 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"
+                            className="p-1 bg-muted rounded-full text-muted-foreground hover:bg-accent"
                         >
                             <X size={16} />
                         </button>
@@ -151,11 +151,11 @@ export default function BrainAIPage() {
 
                 <div className="flex items-end gap-3 max-w-3xl mx-auto">
                     {/* Input Field */}
-                    <div className="flex-1 bg-white rounded-[1.5rem] border border-gray-200 focus-within:border-violet-300 focus-within:shadow-md transition-all p-1.5 flex items-center">
+                    <div className="flex-1 bg-card rounded-[1.5rem] border border-border focus-within:border-primary focus-within:shadow-md transition-all p-1.5 flex items-center">
                         {/* Image Upload Trigger */}
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="p-2 text-gray-400 hover:text-violet-600 transition-colors hover:bg-violet-50 rounded-full"
+                            className="p-2 text-muted-foreground hover:text-primary transition-colors hover:bg-primary/10 rounded-full"
                         >
                             <ImageIcon size={20} />
                         </button>
@@ -173,14 +173,14 @@ export default function BrainAIPage() {
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleSend()}
                             placeholder={selectedImage ? "Add a caption..." : "Ask me anything..."}
-                            className="flex-1 bg-transparent px-2 py-2.5 text-sm focus:outline-none text-black placeholder:text-gray-400"
+                            className="flex-1 bg-transparent px-2 py-2.5 text-sm focus:outline-none text-foreground placeholder:text-muted-foreground"
                         />
                         <button
                             onClick={handleSend}
                             disabled={!input.trim() && !selectedImage}
                             className={cn(
                                 "p-2 rounded-full transition-all",
-                                (input.trim() || selectedImage) ? "bg-[#1a237e] text-white hover:bg-indigo-800 shadow-md transform hover:scale-105" : "text-gray-300 cursor-not-allowed"
+                                (input.trim() || selectedImage) ? "bg-primary text-white hover:bg-primary/80 shadow-md transform hover:scale-105" : "text-muted-foreground cursor-not-allowed"
                             )}
                         >
                             <Send size={18} className={(input.trim() || selectedImage) ? "translate-x-0.5" : ""} />
