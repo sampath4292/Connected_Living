@@ -757,6 +757,14 @@ export const api = {
         // We will push it to MOCK events for now.
         MOCK_COMMUNITY_EVENTS.push(newEvent)
         return true
+    },
+
+    // DASHBOARD Stats
+    getDashboardStats: async (): Promise<{ activeTickets: number; upcomingBookings: number; pendingApprovals: number }> => {
+        const activeTickets = MOCK_SERVICE_REQUESTS.filter(r => r.status === "Open" || r.status === "In Progress").length
+        const upcomingBookings = MOCK_BOOKINGS.filter(b => b.status === "Confirmed" || b.status === "Pending").length
+        const pendingApprovals = MOCK_VISITORS.filter(v => v.status === "Expected").length
+        return new Promise(resolve => setTimeout(() => resolve({ activeTickets, upcomingBookings, pendingApprovals }), 300))
     }
 }
 
