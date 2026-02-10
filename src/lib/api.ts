@@ -50,13 +50,21 @@ export interface NotificationItem {
 
 export interface VisitorItem {
     id: number
-    unitId: string // Which unit are they visiting?
-    hostName: string // For Security to know who invited
+    unitId: string
+    hostName: string
     name: string
-    type: "Delivery" | "Guest" | "Cab"
-    code: string
-    time: string
+    type: "Delivery" | "Guest" | "Cab" | "Service"
+    code?: string
+    time?: string
     status: "Expected" | "Inside" | "Left" | "Denied"
+    date?: string // YYYY-MM-DD
+    approvalType?: "Pre-approved" | "Sudden"
+    vehicleNo?: string
+    mobile?: string
+    image?: string
+    purpose?: string
+    entryTime?: string
+    exitTime?: string
 }
 
 export interface AmenityItem {
@@ -181,7 +189,6 @@ export interface SavedVisitorItem {
     type: "Guest" | "Delivery" | "Cab"
     avatar?: string
     relation?: string // e.g., "Mom", "Maid"
-    relation?: string // e.g., "Mom", "Maid"
     phone?: string
     email?: string
     lastVisit?: string
@@ -206,6 +213,22 @@ export interface AttendanceItem {
     checkOut?: string
     status: "Present" | "Absent" | "Half-day"
 }
+
+export interface SOSLogItem {
+    id: string
+    unitId: string
+    residentName: string
+    location: string
+    time: string
+    status: "Active" | "Resolved"
+    resolvedBy?: string
+    resolvedAt?: string
+}
+
+const MOCK_SOS_LOGS: SOSLogItem[] = [
+    { id: "SOS-1", unitId: "A-101", residentName: "Vikram Singh", location: "Inside Unit", time: "10 mins ago", status: "Active" },
+    { id: "SOS-2", unitId: "B-202", residentName: "Priya", location: "Clubhouse", time: "2 days ago", status: "Resolved", resolvedBy: "Ramesh Guard", resolvedAt: "2 days ago" }
+]
 
 const MOCK_SAVED_VISITORS: SavedVisitorItem[] = [
     { id: "SV-1", name: "Mohan", type: "Guest", relation: "Tution Teacher", phone: "9876543210", email: "mohan@tutor.com", lastVisit: "2 days ago", avatar: "M" },
@@ -330,9 +353,13 @@ const MOCK_NOTIFICATIONS: NotificationItem[] = [
 ]
 
 const MOCK_VISITORS: VisitorItem[] = [
-    { id: 1, unitId: "A-101", hostName: "Vikram Singh", name: "Rahul Sharma", type: "Delivery", code: "4521", time: "Expected today, 2:00 PM", status: "Expected" },
-    { id: 2, unitId: "A-101", hostName: "Vikram Singh", name: "Priya Singh", type: "Guest", code: "9087", time: "Today, 6:00 PM", status: "Inside" },
-    { id: 3, unitId: "A-101", hostName: "Vikram Singh", name: "Uber Cab", type: "Cab", code: "WB-02-1234", time: "Yesterday", status: "Left" },
+    { id: 1, unitId: "A-101", hostName: "Vikram Singh", name: "Rahul Sharma", type: "Delivery", code: "4521", time: "Expected today, 2:00 PM", status: "Expected", date: new Date().toISOString().split('T')[0], approvalType: "Pre-approved", mobile: "9876543210" },
+    { id: 2, unitId: "A-101", hostName: "Vikram Singh", name: "Priya Singh", type: "Guest", code: "9087", time: "Entered 10:15 AM", status: "Inside", date: new Date().toISOString().split('T')[0], approvalType: "Pre-approved", image: "https://i.pravatar.cc/150?u=priya" },
+    { id: 3, unitId: "A-101", hostName: "Vikram Singh", name: "Uber Cab", type: "Cab", code: "WB-02-1234", time: "Left 9:45 AM", status: "Left", date: new Date().toISOString().split('T')[0], approvalType: "Sudden", vehicleNo: "WB-02-1234" },
+    { id: 4, unitId: "B-202", hostName: "Suresh", name: "Zomato", type: "Delivery", code: "1122", time: "12:00 PM", status: "Expected", date: new Date().toISOString().split('T')[0], approvalType: "Pre-approved" },
+    { id: 5, unitId: "C-303", hostName: "Anjali", name: "Ramesh Electrician", type: "Service", code: "3344", time: "Denied 11:00 AM", status: "Denied", date: new Date().toISOString().split('T')[0], approvalType: "Sudden" },
+    // Yesterday
+    { id: 6, unitId: "A-101", hostName: "Vikram Singh", name: "Yesterday Guest", type: "Guest", code: "5566", time: "Left 6:00 PM", status: "Left", date: new Date(Date.now() - 86400000).toISOString().split('T')[0], approvalType: "Pre-approved" },
 ]
 
 const MOCK_AMENITIES: AmenityItem[] = [
@@ -642,6 +669,29 @@ export const api = {
     // SECURITY Methods
     getGateEntries: async (): Promise<VisitorItem[]> => MOCK_VISITORS,
     verifyVisitorCode: async (code: string): Promise<VisitorItem | undefined> => MOCK_VISITORS.find(v => v.code === code),
+    checkInVisitor: async (id: number): Promise<boolean> => {
+        const visitor = MOCK_VISITORS.find(v => v.id === id)
+        if (visitor) {
+            visitor.status = "Inside"
+            visitor.time = `Checked In: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+            return new Promise(resolve => setTimeout(() => resolve(true), 600))
+        }
+        return false
+    },
+    checkOutVisitor: async (id: number): Promise<boolean> => {
+        const visitor = MOCK_VISITORS.find(v => v.id === id)
+        if (visitor) {
+            visitor.status = "Left"
+            visitor.exitTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            visitor.time = `Left: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+            return new Promise(resolve => setTimeout(() => resolve(true), 600))
+        }
+        return false
+    },
+
+    getSOSLogs: async (): Promise<SOSLogItem[]> => {
+        return new Promise(resolve => setTimeout(() => resolve(MOCK_SOS_LOGS), 500))
+    },
 
     getSavedVisitors: async (): Promise<SavedVisitorItem[]> => new Promise(resolve => setTimeout(() => resolve(MOCK_SAVED_VISITORS), 400)),
     getSavedVisitorById: async (id: string): Promise<SavedVisitorItem | undefined> => {
@@ -661,15 +711,22 @@ export const api = {
         return new Promise(resolve => setTimeout(() => {
             const code = Math.floor(1000 + Math.random() * 9000).toString()
 
+            // Determine name based on visitor type
+            let visitorName = ""
+            if (data.type === "Guest") {
+                visitorName = data.name || "Guest"
+            } else if (data.type === "Delivery") {
+                visitorName = data.name || data.vendor || "Delivery Person"
+            } else if (data.type === "Cab") {
+                visitorName = data.driverName
+            }
+
             // 1. Create Active Visitor Entry
             const newVisitor: VisitorItem = {
                 id: Date.now(),
                 unitId: "A-101",
                 hostName: "Vikram",
-                name: "name" in data ? (data.name || data.vendor) : (data.driverName), // Fallback logic
-                type: data.type,
-                code: code,
-                time: "time" in data && data.time ? `${data.date}, ${data.time}` : `${data.date}`,
+                name: visitorName,
                 type: data.type,
                 code: code,
                 time: "time" in data && data.time ? `${data.date}, ${data.time}` : `${data.date}`,
@@ -680,16 +737,15 @@ export const api = {
             MOCK_VISITORS.unshift(newVisitor)
 
             // 2. Auto-save to "Saved Visitors" if not exists (Only for Guests)
-            const visitorName = newVisitor.name
             const exists = MOCK_SAVED_VISITORS.find(v => v.name.toLowerCase() === visitorName.toLowerCase())
 
             if (!exists && data.type === 'Guest') {
                 MOCK_SAVED_VISITORS.push({
                     id: `SV-${Date.now()}`,
                     name: visitorName,
-                    type: data.type,
-                    relation: data.type === 'Guest' ? 'Friend' : data.type, // Default relation
-                    avatar: data.avatar
+                    type: "Guest",
+                    relation: 'Friend', // Default relation for guests
+                    avatar: (data as { avatar?: string }).avatar
                 })
             }
 
