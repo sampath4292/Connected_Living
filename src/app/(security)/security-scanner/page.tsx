@@ -1,12 +1,13 @@
 "use client"
 
 import { useState } from "react"
-// @ts-ignore
-import { QrReader } from 'react-qr-reader'
-import { ScanLine, CheckCircle, XCircle, Search, User, Loader2, QrCode, Camera as CameraIcon, RotateCcw } from "lucide-react"
+import { ScanLine, CheckCircle, XCircle, Search, User, Loader2, QrCode, Smartphone, Camera, RefreshCcw, ArrowLeft } from "lucide-react"
 import { api, VisitorItem } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { Scanner } from '@yudiel/react-qr-scanner';
+import Link from "next/link"
+import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
 export default function SecurityScannerPage() {
@@ -15,246 +16,271 @@ export default function SecurityScannerPage() {
     const [scannedVisitor, setScannedVisitor] = useState<VisitorItem | null>(null)
     const [scanStatus, setScanStatus] = useState<"idle" | "success" | "error">("idle")
     const [errorMessage, setErrorMessage] = useState("")
-    const [cameraFacing, setCameraFacing] = useState<"environment" | "user">("environment")
     const [isCameraActive, setIsCameraActive] = useState(true)
+    const [cameraFacing, setCameraFacing] = useState<"environment" | "user">("environment")
 
-    // Handle QR Scan
-    const handleQrScan = async (result: any) => {
-        if (result) {
-            const scanCode = result?.text
-            if (scanCode && scanCode !== code) {
-                // Determine if we should process this code
-                // Prevent flooding scans
-                setCode(scanCode)
-                await processCode(scanCode)
-            }
-        }
-    }
+    const handleQrScan = async (data: string | null) => {
+        if (!data) return
+        if (isLoading || scanStatus === "success") return
 
-    // Handle Manual Submit
-    const handleManualSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!code.trim()) return
-        await processCode(code)
-    }
-
-    const processCode = async (inputCode: string) => {
+        console.log("Scanned Code:", data)
         setIsLoading(true)
-        setScanStatus("idle")
-        setScannedVisitor(null)
-        setErrorMessage("")
 
         try {
-            const visitor = await api.verifyVisitorCode(inputCode)
+            const visitors = await api.getVisitors()
+            const visitor = visitors.find(v => v.code === data)
 
-            if (visitor) {
-                setScannedVisitor(visitor)
-
-                if (visitor.status === "Expected") {
-                    await api.checkInVisitor(visitor.id)
-                    setScanStatus("success")
-                    toast.success(`${visitor.name} marked as INSIDE`)
-                    setScannedVisitor({ ...visitor, status: "Inside", time: "Just now" })
-                } else if (visitor.status === "Inside") {
-                    // @ts-ignore
-                    if (api.checkOutVisitor) {
-                        // @ts-ignore
-                        await api.checkOutVisitor(visitor.id)
-                        setScanStatus("success")
-                        toast.success(`${visitor.name} marked as LEFT`)
-                        setScannedVisitor({ ...visitor, status: "Left", time: "Just now" })
-                    } else {
-                        setScanStatus("error")
-                        setErrorMessage("Check-out not supported.")
-                    }
-                } else if (visitor.status === "Left") {
-                    setScanStatus("error")
-                    setErrorMessage(`Visitor already exited.`)
-                } else if (visitor.status === "Denied") {
-                    setScanStatus("error")
-                    setErrorMessage(`Visitor Access Denied.`)
-                } else {
-                    // Generic error/info
-                    setScanStatus("error")
-                    setErrorMessage(`Status: ${visitor.status}`)
-                }
-            } else {
+            if (!visitor) {
                 setScanStatus("error")
                 setErrorMessage("Invalid Code. Visitor not found.")
+                toast.error("Invalid QR Code")
+                setTimeout(() => setScanStatus("idle"), 3000)
+                setIsLoading(false)
+                return
             }
+
+            if (visitor.status === "Expected") {
+                await api.checkInVisitor(visitor.id)
+                setScannedVisitor({ ...visitor, status: "Inside" })
+                setScanStatus("success")
+                toast.success(`Welcome ${visitor.name}`, { description: `Unit ${visitor.unitId} - Checked In` })
+            } else if (visitor.status === "Inside") {
+                await api.checkOutVisitor(visitor.id)
+                setScannedVisitor({ ...visitor, status: "Left" })
+                setScanStatus("success")
+                toast.success(`Goodbye ${visitor.name}`, { description: `Checked Out at ${new Date().toLocaleTimeString()}` })
+            } else if (visitor.status === "Left") {
+                setScanStatus("error")
+                setErrorMessage("Visitor already left.")
+                toast.warning("Already Checked Out")
+                setTimeout(() => setScanStatus("idle"), 3000)
+            } else {
+                setScanStatus("error")
+                setErrorMessage(`Status: ${visitor.status}. Cannot process.`)
+                toast.error(`Status: ${visitor.status}`)
+                setTimeout(() => setScanStatus("idle"), 3000)
+            }
+
         } catch (error) {
-            console.error("Scan Error", error)
+            console.error(error)
             setScanStatus("error")
-            setErrorMessage("System error. Please try again.")
+            setErrorMessage("Failed to process code.")
+            toast.error("Scan Failed")
+            setTimeout(() => setScanStatus("idle"), 3000)
         } finally {
             setIsLoading(false)
         }
     }
 
+    const handleManualSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (code.length >= 4) {
+            handleQrScan(code)
+        }
+    }
+
     const resetScan = () => {
-        setCode("")
         setScanStatus("idle")
         setScannedVisitor(null)
         setErrorMessage("")
+        setIsLoading(false)
+        setCode("")
     }
 
+    const manualInputRef = (node: HTMLInputElement | null) => {
+        if (node && !isCameraActive) {
+            node.focus()
+        }
+    }
+
+
     return (
-        <div className="min-h-screen bg-background pb-24 lg:pb-0">
+        <div className="min-h-screen bg-black text-white flex flex-col relative pb-[env(safe-area-inset-bottom)]">
             {/* Header */}
-            <div className="bg-background/80 backdrop-blur-xl p-4 lg:p-6 border-b border-border sticky top-0 z-10 flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-foreground lg:text-3xl tracking-tight">QR Scanner</h1>
-                    <p className="text-muted-foreground text-sm mt-1">Scan visitor or vehicle passes</p>
+            <div className="absolute top-0 left-0 right-0 p-4 z-20 flex justify-between items-start bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
+                <Link href="/security-visitors" className="pointer-events-auto p-2 bg-black/40 backdrop-blur-md rounded-full text-white/80 hover:text-white hover:bg-black/60 transition-all">
+                    <ArrowLeft size={24} />
+                </Link>
+
+                <div className="flex flex-col items-end gap-2">
+                    <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+                        <h1 className="text-sm font-bold flex items-center gap-2">
+                            <QrCode size={16} className="text-green-400" />
+                            QR Scanner
+                        </h1>
+                    </div>
                 </div>
-                <Button
-                    variant="outline"
-                    onClick={() => setIsCameraActive(!isCameraActive)}
-                    className="gap-2"
-                >
-                    {isCameraActive ? "Stop Camera" : "Start Camera"}
-                </Button>
             </div>
 
-            <div className="p-6 max-w-xl mx-auto space-y-8">
-                {/* Scanner View */}
-                <div className="relative aspect-square bg-black rounded-3xl overflow-hidden shadow-2xl border-4 border-muted flex flex-col items-center justify-center">
+            {/* Camera Viewport - Flexible Height */}
+            <div className="flex-1 relative bg-black flex items-center justify-center min-h-[40vh] transition-all duration-300">
+                {isCameraActive ? (
+                    <div className="relative w-full h-full min-h-[40vh]">
+                        <Scanner
+                            onScan={(result) => {
+                                if (result && result.length > 0) {
+                                    handleQrScan(result[0].rawValue)
+                                }
+                            }}
+                            constraints={{
+                                facingMode: cameraFacing
+                            }}
+                            components={{
+                                audio: false,
+                                onOff: false,
+                                finder: false,
+                                torch: false
+                            }}
+                            styles={{
+                                container: { width: '100%', height: '100%' },
+                                video: { objectFit: 'cover', width: '100%', height: '100%' }
+                            }}
+                        />
+                        {/* Overlay Elements */}
+                        <div className="absolute inset-0 z-10 pointer-events-none h-full w-full">
+                            {/* Scan Frame */}
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-green-500/50 rounded-3xl bg-green-500/5 shadow-[0_0_100px_rgba(34,197,94,0.2)] animate-pulse">
+                                <div className="absolute top-0 left-0 w-full h-1 bg-green-500/80 shadow-[0_0_20px_rgba(34,197,94,1)] animate-scan-line" />
 
-                    {isCameraActive ? (
-                        <div className="w-full h-full relative">
-                            <QrReader
-                                constraints={{ facingMode: cameraFacing }}
-                                onResult={handleQrScan}
-                                className="w-full h-full object-cover"
-                                containerStyle={{ width: '100%', height: '100%' }}
-                                videoStyle={{ objectFit: 'cover' }}
-                            />
-                            {/* Overlay */}
-                            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                                <div className="w-64 h-64 border-2 border-green-500 rounded-3xl relative opacity-80">
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.8)] animate-[scan_2s_linear_infinite]"></div>
-                                </div>
+                                {/* Corners */}
+                                <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-green-500 rounded-tl-xl" />
+                                <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-green-500 rounded-tr-xl" />
+                                <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-green-500 rounded-bl-xl" />
+                                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-green-500 rounded-br-xl" />
                             </div>
 
-                            {/* Flip Camera Button */}
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setCameraFacing(prev => prev === "environment" ? "user" : "environment");
-                                }}
-                                className="absolute bottom-4 right-4 bg-black/50 p-3 rounded-full text-white hover:bg-black/70 backdrop-blur-md z-20"
-                            >
-                                <CameraIcon size={20} />
-                            </button>
+                            <p className="absolute top-3/4 left-0 right-0 text-center text-white/70 text-sm font-medium animate-pulse mt-8">
+                                Point camera at visitor code
+                            </p>
                         </div>
-                    ) : (
-                        <div className="flex flex-col items-center text-muted-foreground">
-                            <QrCode size={64} className="opacity-20 mb-4" />
-                            <p>Camera Paused</p>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center text-zinc-500 gap-4 min-h-[40vh]">
+                        <div className="w-20 h-20 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                            <Camera size={32} />
                         </div>
-                    )}
-                </div>
+                        <p>Camera Paused</p>
+                    </div>
+                )}
 
-                {/* Manual Input Fallback */}
-                <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
-                    <form onSubmit={handleManualSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-muted-foreground">Or enter code manually</label>
-                            <div className="relative">
-                                <ScanLine className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-                                <input
-                                    type="text"
-                                    value={code}
-                                    onChange={(e) => setCode(e.target.value)}
-                                    placeholder="Visitor Pass Code (e.g. 4521)"
-                                    className="w-full bg-muted/50 border border-input rounded-xl py-3 pl-10 pr-4 text-foreground focus:outline-none focus:ring-2 focus:ring-green-500 transition-all font-mono tracking-wider"
-                                />
-                            </div>
-                        </div>
-                        <button
-                            type="submit"
-                            disabled={isLoading || !code}
-                            className={cn(
-                                "w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all",
-                                isLoading || !code ? "bg-muted text-muted-foreground" : "bg-green-600 text-white hover:bg-green-700 shadow-lg hover:shadow-green-500/20"
-                            )}
-                        >
-                            {isLoading ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
-                            {isLoading ? "Verifying..." : "Verify Code"}
-                        </button>
-                    </form>
-                </div>
-
-                {/* Scan Result */}
+                {/* Success/Error Overlay */}
                 {scanStatus !== "idle" && (
-                    <div className={cn(
-                        "rounded-2xl p-6 border shadow-lg animate-in slide-in-from-bottom-4 duration-500",
-                        scanStatus === "success" ? "bg-green-500/10 border-green-500/20" : "bg-red-500/10 border-red-500/20"
-                    )}>
-                        <div className="flex items-start gap-4">
+                    <div className="absolute inset-0 z-30 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200 h-full w-full">
+                        <div className={cn(
+                            "w-full max-w-sm bg-card text-card-foreground rounded-3xl p-6 shadow-2xl border flex flex-col items-center text-center gap-4",
+                            scanStatus === "success" ? "border-green-500/20 bg-zinc-900" : "border-red-500/20 bg-zinc-900"
+                        )}>
                             <div className={cn(
-                                "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
-                                scanStatus === "success" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
+                                "w-16 h-16 rounded-full flex items-center justify-center mb-2",
+                                scanStatus === "success" ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"
                             )}>
-                                {scanStatus === "success" ? <CheckCircle size={24} /> : <XCircle size={24} />}
+                                {scanStatus === "success" ? <CheckCircle size={32} /> : <XCircle size={32} />}
                             </div>
-                            <div className="flex-1">
-                                <h3 className={cn(
-                                    "font-bold text-lg mb-1",
-                                    scanStatus === "success" ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"
-                                )}>
-                                    {scanStatus === "success" ? "Processed Successfully" : "Action Failed"}
-                                </h3>
 
-                                {scannedVisitor && (
-                                    <div className="text-sm space-y-2 mt-2">
-                                        <div className="flex justify-between border-b border-green-500/20 pb-2">
-                                            <span className="text-muted-foreground">Visitor</span>
-                                            <span className="font-semibold text-foreground">{scannedVisitor.name}</span>
-                                        </div>
-                                        <div className="flex justify-between border-b border-green-500/20 pb-2">
-                                            <span className="text-muted-foreground">Type</span>
-                                            <span className="font-semibold text-foreground">{scannedVisitor.type}</span>
-                                        </div>
-                                        <div className="flex justify-between border-b border-green-500/20 pb-2">
-                                            <span className="text-muted-foreground">Status</span>
-                                            <span className={cn(
-                                                "font-bold uppercase",
-                                                scannedVisitor.status === "Inside" ? "text-green-600" :
-                                                    scannedVisitor.status === "Left" ? "text-gray-600" : "text-blue-600"
-                                            )}>{scannedVisitor.status}</span>
-                                        </div>
-                                        <div className="flex justify-between pt-1">
-                                            <span className="text-muted-foreground">Time</span>
-                                            <span className="font-bold text-foreground">{scannedVisitor.time}</span>
+                            {scanStatus === "success" && scannedVisitor && (
+                                <>
+                                    <h2 className="text-xl font-bold">{scannedVisitor.status === "Inside" ? "Access Granted" : "Checked Out"}</h2>
+                                    <div className="flex flex-col gap-1 w-full bg-black/20 rounded-xl p-4">
+                                        <p className="text-sm text-muted-foreground uppercase tracking-wider font-bold">Visitor</p>
+                                        <p className="text-lg font-semibold">{scannedVisitor.name}</p>
+                                        <div className="flex justify-between mt-2 pt-2 border-t border-white/5">
+                                            <div className="text-left">
+                                                <p className="text-xs text-muted-foreground">Unit</p>
+                                                <p className="font-mono">{scannedVisitor.unitId}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs text-muted-foreground">Type</p>
+                                                <p className="font-medium">{scannedVisitor.type}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                )}
+                                </>
+                            )}
 
-                                {scanStatus === "error" && (
-                                    <p className="text-muted-foreground text-sm mt-1">
-                                        {errorMessage}
-                                    </p>
-                                )}
-                            </div>
+                            {scanStatus === "error" && (
+                                <>
+                                    <h2 className="text-xl font-bold text-red-500">Scan Failed</h2>
+                                    <p className="text-muted-foreground">{errorMessage}</p>
+                                </>
+                            )}
+
+                            <Button onClick={resetScan} className="w-full rounded-xl mt-2" variant={scanStatus === "success" ? "default" : "destructive"}>
+                                {scanStatus === "success" ? "Scan Next" : "Try Again"}
+                            </Button>
                         </div>
-
-                        <button
-                            onClick={resetScan}
-                            className="w-full mt-6 bg-background border border-border py-2.5 rounded-xl font-medium text-sm hover:bg-muted transition-colors flex items-center justify-center gap-2"
-                        >
-                            <RotateCcw size={16} /> Scan Next Visitor
-                        </button>
                     </div>
                 )}
             </div>
 
-            <style jsx global>{`
-                @keyframes scan {
-                    0% { top: 0; opacity: 0; }
-                    50% { opacity: 1; }
-                    100% { top: 100%; opacity: 0; }
-                }
-            `}</style>
+            {/* Controls & Manual Entry */}
+            <div className="w-full bg-background text-foreground rounded-t-3xl p-6 pb-24 space-y-6 flex-shrink-0 z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                {/* Camera Controls */}
+                <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium text-muted-foreground">
+                        Scanner Controls
+                    </div>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="rounded-full h-10 w-10"
+                            onClick={() => setCameraFacing(prev => prev === "environment" ? "user" : "environment")}
+                            disabled={!isCameraActive}
+                        >
+                            <RefreshCcw size={18} />
+                        </Button>
+                        <Button
+                            variant={isCameraActive ? "destructive" : "default"}
+                            size="sm"
+                            className="rounded-full"
+                            onClick={() => setIsCameraActive(!isCameraActive)}
+                        >
+                            {isCameraActive ? "Stop Camera" : "Start Camera"}
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Manual Entry */}
+                <form onSubmit={handleManualSubmit} className="space-y-3 pb-8 lg:pb-0">
+                    <label className="text-sm font-medium text-muted-foreground block">
+                        Or enter code manually
+                    </label>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <ScanLine className="text-muted-foreground" size={18} />
+                        </div>
+                        <Input
+                            ref={manualInputRef}
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="Visitor Pass Code (e.g. 4821)"
+                            value={code}
+                            onChange={(e) => setCode(e.target.value)}
+                            className="pl-10 h-12 text-lg font-mono tracking-widest bg-muted border-transparent focus:bg-background"
+                            maxLength={6}
+                        />
+                    </div>
+
+                    {/* Animated Button Container */}
+                    <div
+                        className={cn(
+                            "grid transition-all duration-300 ease-in-out",
+                            code.length >= 4 ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0 pointer-events-none"
+                        )}
+                    >
+                        <div className="overflow-hidden min-h-0">
+                            <Button
+                                type="submit"
+                                className="w-full h-12 text-base font-semibold rounded-xl mt-2" // Added mt-2 inside to spacing
+                                disabled={isLoading || code.length < 4}
+                            >
+                                {isLoading ? <Loader2 className="animate-spin mr-2" /> : <CheckCircle className="mr-2" size={18} />}
+                                Submit Code
+                            </Button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     )
 }

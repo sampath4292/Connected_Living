@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { Calendar, Filter, ArrowUpDown, Search, User, Car, Package, Truck, Clock, MapPin, Phone, Shield, ArrowLeft, ScanLine } from "lucide-react"
+import { Calendar, Filter, ArrowUpDown, Search, User, Car, Package, Truck, Clock, MapPin, Phone, Shield, ArrowLeft, ScanLine, QrCode } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { api, VisitorItem } from "@/lib/api"
@@ -156,9 +156,9 @@ export default function SecurityVisitorsPage() {
                         {/* SCAN BUTTON - LINK TO PAGE */}
                         <Link href="/security-scanner">
                             <button
-                                className="bg-foreground text-background px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg hover:opacity-90 active:scale-95 transition-all"
+                                className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-md shadow-green-500/20 hover:opacity-90 active:scale-95 transition-all"
                             >
-                                <ScanLine size={18} />
+                                <QrCode size={18} />
                                 <span className="hidden sm:inline">Scan Entry/Exit</span>
                             </button>
                         </Link>

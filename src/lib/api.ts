@@ -153,6 +153,20 @@ export interface VehicleItem {
     color?: string
 }
 
+export interface VehicleEntryItem {
+    id: string
+    vehicleNumber: string
+    type: "Car" | "Bike" | "Truck" | "Auto"
+    ownerName: string
+    unitId: string
+    status: "Inside" | "Exited"
+    entryTime: string
+    exitTime?: string
+    date: string // YYYY-MM-DD format
+    purpose?: string
+    registeredVehicleId?: string // Link to VehicleItem if registered
+}
+
 export interface CommunityMessageItem {
     id: number
     sender: string
@@ -239,6 +253,22 @@ const MOCK_SAVED_VISITORS: SavedVisitorItem[] = [
 const MOCK_FREQUENT_VISITORS: FrequentVisitorItem[] = [
     { id: "FV-1", name: "Sunita Helper", type: "Staff", relation: "Maid", validUntil: "2024-12-31", allowedTimeSlot: "Morning (8am-12pm)", isActive: true, avatar: "S" },
     { id: "FV-2", name: "School Van", type: "Cab", relation: "Daily Drop", validUntil: "2024-06-30", allowedTimeSlot: "Afternoon (2pm-4pm)", isActive: true },
+]
+
+const MOCK_VEHICLE_ENTRIES: VehicleEntryItem[] = [
+    // Today's entries
+    { id: "VE-1", vehicleNumber: "KA-01-AB-1234", type: "Car", ownerName: "Vikram Sharma", unitId: "A-101", status: "Inside", entryTime: "9:30 AM", date: new Date().toISOString().split('T')[0], purpose: "Resident" },
+    { id: "VE-2", vehicleNumber: "KA-05-CD-5678", type: "Bike", ownerName: "Priya Patel", unitId: "B-205", status: "Inside", entryTime: "10:15 AM", date: new Date().toISOString().split('T')[0], purpose: "Resident" },
+    { id: "VE-3", vehicleNumber: "KA-03-EF-9012", type: "Car", ownerName: "Rahul Kumar", unitId: "A-302", status: "Exited", entryTime: "8:00 AM", exitTime: "11:30 AM", date: new Date().toISOString().split('T')[0], purpose: "Resident" },
+    { id: "VE-4", vehicleNumber: "KA-02-GH-3456", type: "Truck", ownerName: "Delivery - Amazon", unitId: "C-101", status: "Inside", entryTime: "11:00 AM", date: new Date().toISOString().split('T')[0], purpose: "Delivery" },
+    { id: "VE-5", vehicleNumber: "KA-04-IJ-7890", type: "Auto", ownerName: "Cab for A-201", unitId: "A-201", status: "Exited", entryTime: "9:45 AM", exitTime: "10:00 AM", date: new Date().toISOString().split('T')[0], purpose: "Cab" },
+    { id: "VE-6", vehicleNumber: "KA-06-KL-2345", type: "Car", ownerName: "Guest of B-303", unitId: "B-303", status: "Inside", entryTime: "2:15 PM", date: new Date().toISOString().split('T')[0], purpose: "Guest" },
+
+    // Yesterday's entries
+    { id: "VE-7", vehicleNumber: "KA-07-MN-6789", type: "Bike", ownerName: "Amit Singh", unitId: "A-105", status: "Exited", entryTime: "7:30 AM", exitTime: "6:45 PM", date: new Date(Date.now() - 86400000).toISOString().split('T')[0], purpose: "Resident" },
+    { id: "VE-8", vehicleNumber: "KA-08-OP-3456", type: "Car", ownerName: "Swiggy Delivery", unitId: "C-202", status: "Exited", entryTime: "1:15 PM", exitTime: "1:30 PM", date: new Date(Date.now() - 86400000).toISOString().split('T')[0], purpose: "Delivery" },
+    { id: "VE-9", vehicleNumber: "KA-09-QR-7890", type: "Auto", ownerName: "Ola Cab", unitId: "A-401", status: "Exited", entryTime: "8:00 AM", exitTime: "8:15 AM", date: new Date(Date.now() - 86400000).toISOString().split('T')[0], purpose: "Cab" },
+    { id: "VE-10", vehicleNumber: "KA-10-ST-1234", type: "Truck", ownerName: "Furniture Delivery", unitId: "B-101", status: "Exited", entryTime: "10:00 AM", exitTime: "11:45 AM", date: new Date(Date.now() - 86400000).toISOString().split('T')[0], purpose: "Delivery" },
 ]
 
 export interface BookingItem {
@@ -771,6 +801,35 @@ export const api = {
             .reduce((acc, curr) => acc + parseInt(curr.amount.replace(/[^0-9]/g, '')), 0)
     }),
     getNotices: async (): Promise<NoticeItem[]> => MOCK_NOTICES,
+
+    // VEHICLE ENTRY Methods
+    getVehicleEntries: async (date?: string): Promise<VehicleEntryItem[]> => {
+        await delay(300)
+        const targetDate = date || new Date().toISOString().split('T')[0]
+        return MOCK_VEHICLE_ENTRIES.filter(v => v.date === targetDate)
+    },
+
+    addVehicleEntry: async (entry: Omit<VehicleEntryItem, 'id' | 'date' | 'entryTime' | 'status'>): Promise<VehicleEntryItem> => {
+        await delay(300)
+        const newEntry: VehicleEntryItem = {
+            ...entry,
+            id: `VE-${Date.now()}`,
+            date: new Date().toISOString().split('T')[0],
+            entryTime: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+            status: "Inside"
+        }
+        MOCK_VEHICLE_ENTRIES.push(newEntry)
+        return newEntry
+    },
+
+    markVehicleExit: async (id: string): Promise<VehicleEntryItem> => {
+        await delay(300)
+        const vehicle = MOCK_VEHICLE_ENTRIES.find(v => v.id === id)
+        if (!vehicle) throw new Error("Vehicle entry not found")
+        vehicle.status = "Exited"
+        vehicle.exitTime = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+        return vehicle
+    },
 
     // COMMUNITY Methods
     getCommunityMessages: async (): Promise<CommunityMessageItem[]> => MOCK_COMMUNITY_MESSAGES,
