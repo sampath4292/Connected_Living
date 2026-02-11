@@ -228,6 +228,15 @@ export interface AttendanceItem {
     status: "Present" | "Absent" | "Half-day"
 }
 
+export interface BlacklistItem {
+    id: string
+    name: string
+    reason: string
+    date: string
+    photo?: string
+    reportedBy: string
+}
+
 export interface SOSLogItem {
     id: string
     unitId: string
@@ -253,6 +262,11 @@ const MOCK_SAVED_VISITORS: SavedVisitorItem[] = [
 const MOCK_FREQUENT_VISITORS: FrequentVisitorItem[] = [
     { id: "FV-1", name: "Sunita Helper", type: "Staff", relation: "Maid", validUntil: "2024-12-31", allowedTimeSlot: "Morning (8am-12pm)", isActive: true, avatar: "S" },
     { id: "FV-2", name: "School Van", type: "Cab", relation: "Daily Drop", validUntil: "2024-06-30", allowedTimeSlot: "Afternoon (2pm-4pm)", isActive: true },
+]
+
+const MOCK_BLACKLIST: BlacklistItem[] = [
+    { id: "BL-1", name: "Blacklist User", reason: "Repeated disturbance and abuse to staff.", date: "2024-01-15", reportedBy: "Ramesh Guard" },
+    { id: "BL-2", name: "Unknown Vendor", reason: "Tried to enter without valid approval multiple times.", date: "2024-02-01", reportedBy: "Suresh Supervisor" }
 ]
 
 const MOCK_VEHICLE_ENTRIES: VehicleEntryItem[] = [
@@ -791,6 +805,26 @@ export const api = {
     getAllServiceRequests: async (): Promise<ServiceRequestItem[]> => MOCK_SERVICE_REQUESTS,
     getStaff: async (): Promise<StaffItem[]> => MOCK_STAFF,
     getInventory: async (): Promise<InventoryItem[]> => MOCK_INVENTORY,
+
+    // BLACKLIST Methods
+    getBlacklist: async (): Promise<BlacklistItem[]> => new Promise(resolve => setTimeout(() => resolve(MOCK_BLACKLIST), 400)),
+    addToBlacklist: async (item: Omit<BlacklistItem, "id" | "date">): Promise<boolean> => {
+        const newItem: BlacklistItem = {
+            ...item,
+            id: `BL-${Date.now()}`,
+            date: new Date().toISOString().split('T')[0]
+        }
+        MOCK_BLACKLIST.unshift(newItem)
+        return new Promise(resolve => setTimeout(() => resolve(true), 800))
+    },
+    removeFromBlacklist: async (id: string): Promise<boolean> => {
+        const index = MOCK_BLACKLIST.findIndex(b => b.id === id)
+        if (index !== -1) {
+            MOCK_BLACKLIST.splice(index, 1)
+            return new Promise(resolve => setTimeout(() => resolve(true), 600))
+        }
+        return false
+    },
 
     // ADMIN Methods
     getOverviewStats: async () => ({
