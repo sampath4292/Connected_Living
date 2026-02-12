@@ -227,7 +227,11 @@ export default function VisitorsPage() {
                             else { bg = 'bg-orange-500/10'; color = 'text-orange-600 dark:text-orange-400' }
 
                             return (
-                                <div key={visitor.id} className="bg-card border border-border rounded-2xl p-5 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300">
+                                <Link
+                                    key={visitor.id}
+                                    href={`/visitors/${visitor.id}`}
+                                    className="bg-card border border-border rounded-2xl p-5 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300 active:scale-[0.99]"
+                                >
                                     <div className="flex items-center gap-4">
                                         <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm transition-transform hover:scale-105", bg)}>
                                             <Icon size={24} className={color} />
@@ -250,7 +254,7 @@ export default function VisitorsPage() {
                                             {visitor.status}
                                         </div>
                                     </div>
-                                </div>
+                                </Link>
                             )
                         })
                     )}

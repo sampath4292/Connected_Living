@@ -397,13 +397,51 @@ const MOCK_NOTIFICATIONS: NotificationItem[] = [
 ]
 
 const MOCK_VISITORS: VisitorItem[] = [
-    { id: 1, unitId: "A-101", hostName: "Vikram Singh", name: "Rahul Sharma", type: "Delivery", code: "4521", time: "Expected today, 2:00 PM", status: "Expected", date: new Date().toISOString().split('T')[0], approvalType: "Pre-approved", mobile: "9876543210" },
-    { id: 2, unitId: "A-101", hostName: "Vikram Singh", name: "Priya Singh", type: "Guest", code: "9087", time: "Entered 10:15 AM", status: "Inside", date: new Date().toISOString().split('T')[0], approvalType: "Pre-approved", image: "https://i.pravatar.cc/150?u=priya" },
-    { id: 3, unitId: "A-101", hostName: "Vikram Singh", name: "Uber Cab", type: "Cab", code: "WB-02-1234", time: "Left 9:45 AM", status: "Left", date: new Date().toISOString().split('T')[0], approvalType: "Sudden", vehicleNo: "WB-02-1234" },
-    { id: 4, unitId: "B-202", hostName: "Suresh", name: "Zomato", type: "Delivery", code: "1122", time: "12:00 PM", status: "Expected", date: new Date().toISOString().split('T')[0], approvalType: "Pre-approved" },
-    { id: 5, unitId: "C-303", hostName: "Anjali", name: "Ramesh Electrician", type: "Service", code: "3344", time: "Denied 11:00 AM", status: "Denied", date: new Date().toISOString().split('T')[0], approvalType: "Sudden" },
-    // Yesterday
-    { id: 6, unitId: "A-101", hostName: "Vikram Singh", name: "Yesterday Guest", type: "Guest", code: "5566", time: "Left 6:00 PM", status: "Left", date: new Date(Date.now() - 86400000).toISOString().split('T')[0], approvalType: "Pre-approved" },
+    {
+        id: 1,
+        unitId: "A-101",
+        hostName: "Vikram Singh",
+        name: "Rahul Sharma",
+        type: "Guest",
+        code: "4521",
+        time: "Expected today, 02:00 PM",
+        status: "Expected",
+        date: "2024-02-12",
+        approvalType: "Pre-approved",
+        mobile: "+91 98765 43210",
+        purpose: "Weekend Visit",
+        image: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=200&h=200"
+    },
+    {
+        id: 2,
+        unitId: "A-101",
+        hostName: "Vikram Singh",
+        name: "Priya Singh",
+        type: "Guest",
+        code: "9087",
+        time: "Entered 10:15 AM",
+        status: "Inside",
+        date: "2024-02-12",
+        approvalType: "Pre-approved",
+        mobile: "+91 98765 00000",
+        purpose: "Family Visit",
+        entryTime: "10:15 AM",
+        image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200&h=200"
+    },
+    {
+        id: 3,
+        unitId: "A-101",
+        hostName: "Vikram Singh",
+        name: "Zomato Delivery",
+        type: "Delivery",
+        code: "1165",
+        time: "Expired 12:30 PM",
+        status: "Expired",
+        date: "2024-02-12",
+        approvalType: "Pre-approved",
+        purpose: "Food Delivery",
+        vehicleNo: "KA 01 AB 1234"
+    }
 ]
 
 const MOCK_AMENITIES: AmenityItem[] = [
@@ -578,6 +616,9 @@ export const api = {
         return new Promise(resolve => setTimeout(() => resolve(MOCK_USERS[0]), 300))
     },
 
+    getVisitorById: async (id: number): Promise<VisitorItem | undefined> => {
+        return new Promise(resolve => setTimeout(() => resolve(MOCK_VISITORS.find(v => v.id === id)), 400))
+    },
     getVisitors: async (): Promise<VisitorItem[]> => MOCK_VISITORS,
     getAmenities: async (): Promise<AmenityItem[]> => MOCK_AMENITIES,
     getAmenityById: async (id: string) => MOCK_AMENITIES.find(a => a.id === id),
