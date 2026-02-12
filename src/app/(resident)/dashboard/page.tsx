@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Users, Wrench, Receipt, Dumbbell, AlertTriangle, X } from "lucide-react"
+import { Users, Wrench, Receipt, Dumbbell, AlertTriangle, X, Calendar, ClipboardCheck, Clock } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -272,7 +272,7 @@ function QuickAction({ icon: Icon, label, href }: { icon: any, label: string, hr
     )
 }
 
-// Dashboard Stats Card Component
+// NEW: Dashboard Stats Card Component
 function StatCard({ value, label, color }: { value: number; label: string; color: "green" | "blue" | "red" }) {
     const colorClasses = {
         green: "border-green-500 text-green-600 dark:text-green-400",
