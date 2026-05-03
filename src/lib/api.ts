@@ -248,6 +248,8 @@ export interface SOSLogItem {
     resolvedAt?: string
 }
 
+const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
 const MOCK_SOS_LOGS: SOSLogItem[] = [
     { id: "SOS-1", unitId: "A-101", residentName: "Vikram Singh", location: "Inside Unit", time: "10 mins ago", status: "Active" },
     { id: "SOS-2", unitId: "B-202", residentName: "Priya", location: "Clubhouse", time: "2 days ago", status: "Resolved", resolvedBy: "Ramesh Guard", resolvedAt: "2 days ago" }
@@ -435,12 +437,14 @@ const MOCK_VISITORS: VisitorItem[] = [
         name: "Zomato Delivery",
         type: "Delivery",
         code: "1165",
-        time: "Expired 12:30 PM",
-        status: "Expired",
+        time: "Left 12:30 PM",
+        status: "Left",
         date: "2024-02-12",
         approvalType: "Pre-approved",
         purpose: "Food Delivery",
-        vehicleNo: "KA 01 AB 1234"
+        vehicleNo: "KA 01 AB 1234",
+        entryTime: "12:05 PM",
+        exitTime: "12:30 PM"
     }
 ]
 

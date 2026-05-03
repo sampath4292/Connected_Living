@@ -122,8 +122,8 @@ export default function SecurityScannerPage() {
                 constraints={{
                     facingMode: cameraFacing
                 }}
+                sound={false}
                 components={{
-                    audio: false,
                     onOff: false,
                     finder: false,
                     torch: false

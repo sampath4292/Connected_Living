@@ -67,7 +67,7 @@ export default function VisitorDetailsPage({ params }: { params: Promise<{ id: s
         statusBg = "bg-blue-500/10"
         statusColor = "text-blue-600 dark:text-blue-400"
         StatusIcon = Timer
-    } else if (visitor.status === "Expired" || visitor.status === "Denied") {
+    } else if (visitor.status === "Left" || visitor.status === "Denied") {
         statusBg = "bg-red-500/10"
         statusColor = "text-red-600 dark:text-red-500"
         StatusIcon = XCircle
@@ -242,14 +242,6 @@ export default function VisitorDetailsPage({ params }: { params: Promise<{ id: s
                                 />
                             )}
 
-                            {visitor.status === "Expired" && (
-                                <LogItem
-                                    label="Pass Expired"
-                                    time="Used or Timing passed"
-                                    status="error"
-                                    icon={XCircle}
-                                />
-                            )}
                         </div>
                     </div>
                 </div>
